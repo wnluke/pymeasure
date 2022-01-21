@@ -637,87 +637,45 @@ We could have an instrument with command that accept a different valid ranges of
 
 
 Now our voltage property has a dynamic validity range either [-1, 1] or [0, 1].
-It is worth to pay attention on how this is achieved and limitations imposed.
 
- will raise a ValueError if the value is out of the range.
+It is worth to pay attention on how this is achieved and limitations imposed. The user needs to define an instance attribute whose name is <property name>_<property_parameter> and assign it to the desired value.
 
-.. doctest::
+In the example above, the property name was `voltage` and the parmater name was `values`, the same mechanism works for all the parameters in properties, except `dynamic` and `docs`.
 
-    >>> extreme = Extreme5000("GPIB::1")
-    >>> extreme.voltage = 100
-    Traceback (most recent call last):
-    ...
-    ValueError: Value of 100 is not in range [-1,1]
+Properties in class inheriance
+*******************************
+For example, a family of similar instrument exists with some parameter range different for each family member, in this case  you would update the specific class parameter range without rewriting the entire property:
 
-This is useful if you want to alert the programmer that they are using an invalid value. However, sometimes it can be nicer to truncate the value to be within the range.
+Code examples:
 
 .. testcode::
 
-    Extreme5000.voltage = Instrument.control(
-        ":VOLT?", ":VOLT %g",
-        """ A floating point property that controls the voltage
-        in Volts, from -1 to 1 V. Invalid voltages are truncated.
-        This property can be set. """,
-        validator=truncated_range,
-        values=[-1, 1]
-    )
+    class FictionalInstrumentFamily(Instrument):
+        frequency = Instrument.setting(..., values=[0, 1e9],..) # frequency setting command
+    .
+    .
+    .
 
-Now our voltage will not raise an error, and will truncate the value to the range bounds.
+    class FictionalInstrument_1GHz(FictionalInstrumentFamily):
+        pass
+    class FictionalInstrument_3GHz(FictionalInstrumentFamily):
+        frequency_values = [0, 3e9]
 
-.. doctest::
+    class FictionalInstrument_9GHz(FictionalInstrumentFamily):
+        frequency_values = [0, 6e9]
 
-    >>> extreme = Extreme5000("GPIB::1")
-    >>> extreme.voltage = 100        # Executes ":VOLT 1"  
-    >>> extreme.voltage
-    1.0
 
-In a discrete set
-*****************
-
-Often a control property should only take a few discrete values. You can use the :func:`strict_discrete_set <pymeasure.instruments.validators.strict_discrete_set>` and :func:`truncated_discrete_set <pymeasure.instruments.validators.truncated_discrete_set>` functions to handle these situations. The strict version raises an error if the value is not in the set, as in the range examples above.
-
-For example, if our "Extreme 5000" has a :code:`:RANG <float>` command that sets the voltage range that can take values of 10 mV, 100 mV, and 1 V in Volts, then we can write a control as follows.
+A second example, involves maitaining compatibility between instruments with commands having different syntax.
 
 .. testcode::
 
-    Extreme5000.voltage = Instrument.control(
-        ":RANG?", ":RANG %g",
-        """ A floating point property that controls the voltage
-        range in Volts. This property can be set.
-        """,
-        validator=truncated_discrete_set,
-        values=[10e-3, 100e-3, 1]
-    )
+    class MultimeterA(Instrument):
+        voltage = Instrument.measurement(get_command="VOLT?",...)
+    .
+    .
+    .
 
-Now we can set the voltage range, which will automatically truncate to an appropriate value.
+    class MultimeterB(MultimeterA):
+        # Same as brand A multimeter, but the command to read voltage slightly different
+         voltage_get_command = "VOLTAGE?"
 
-.. doctest::
-
-    >>> extreme = Extreme5000("GPIB::1")
-    >>> extreme.voltage = 0.08
-    >>> extreme.voltage
-    0.1
-
-
-Using maps
-**********
-
-Now that you are familiar with the validators, you can additionally use maps to satisfy instruments which require non-physical values. The :code:`map_values` argument of :func:`Instrument.control <pymeasure.instruments.Instrument.control>` enables this feature.
-
-If your set of values is a list, then the command will use the index of the list. For example, if our "Extreme 5000" instead has a :code:`:RANG <integer>`, where 0, 1, and 2 correspond to 10 mV, 100 mV, and 1 V, then we can use the following control.
-
-.. testcode::
-
-    Extreme5000.voltage = Instrument.control(
-        ":RANG?", ":RANG %d",
-        """ A floating point property that controls the voltage
-        range in Volts, which takes values of 10 mV, 100 mV and 1 V.
-        This property can be set. """,
-        validator=truncated_discrete_set,
-        values=[10e-3, 100e-3, 1],
-        map_values=True
-    )
-
-Now the actual GPIB/SCIP command is ":RANG 1" for a value of 100 mV, since the index of 100 mV in the values list is 1.
-
-.. doctest::
