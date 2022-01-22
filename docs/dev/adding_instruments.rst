@@ -657,10 +657,12 @@ A code example follows:
 .. testcode::
 
     class FictionalInstrumentFamily(Instrument):
-        frequency = Instrument.setting(set_command = "FREQ %g",
+        frequency = Instrument.setting("FREQ %g",
+                                       """ Command doc tests goes here
+                                       """,
                                        validator=strict_range,
                                        values=[0, 1e9],
-                                       # list of other parameters
+                                       # list of other possible parameters
 				       )
         #
         # complete class impementation here
