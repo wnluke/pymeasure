@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2021 PyMeasure Developers
+# Copyright (c) 2013-2022 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #
 
 import pytest
-from pymeasure.adapters import FakeAdapter
 from pymeasure.instruments.instrument import Instrument, FakeInstrument
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 
@@ -60,7 +59,7 @@ def test_control_validator():
     assert fake.read() == '5'
     fake.x = 5
     assert fake.x == 5
-    with pytest.raises(ValueError) as e_info:
+    with pytest.raises(ValueError):
         fake.x = 20
 
 
@@ -78,7 +77,7 @@ def test_control_validator_map():
     assert fake.read() == '1'
     fake.x = 5
     assert fake.x == 5
-    with pytest.raises(ValueError) as e_info:
+    with pytest.raises(ValueError):
         fake.x = 20
 
 

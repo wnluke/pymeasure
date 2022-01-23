@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2021 PyMeasure Developers
+# Copyright (c) 2013-2022 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,31 @@
 # THE SOFTWARE.
 #
 import logging
-from time import sleep
-import numpy as np
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.anritsu import AnritsuMS9710C
 from pymeasure.instruments.validators import (
     strict_discrete_set,
     truncated_discrete_set,
     truncated_range,
-    joined_validators
 )
-import re
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 class AnritsuMS9740A(AnritsuMS9710C):
     """Anritsu MS9740A Optical Spectrum Analyzer."""
-    
+
     def __init__(self, adapter, **kwargs):
         """Constructor."""
         self.analysis_mode = None
-        super(AnritsuMS9740A, self).__init__(adapter, name="Anritsu MS9740A Optical Spectrum Analyzer", **kwargs)
-    
+        super(AnritsuMS9740A, self).__init__(
+            adapter, name="Anritsu MS9740A Optical Spectrum Analyzer", **kwargs)
+
     ####################################
     # Spectrum Parameters - Wavelength #
     ####################################
-    
+
     resolution = Instrument.control(
         "RES?", "RES %s", "Resolution (nm)",
         validator=truncated_discrete_set,
@@ -63,7 +61,7 @@ class AnritsuMS9740A(AnritsuMS9710C):
 
     average_sweep = Instrument.control(
         "AVS?", "AVS %d",
-        "Number of averages to make on a sweep (1-1000), with 1 being a single (non-averaged) sweep",
+        "Nr. of averages to make on a sweep (1-1000), with 1 being a single (non-averaged) sweep",
         validator=truncated_range, values=[1, 1000]
     )
 
@@ -91,5 +89,3 @@ class AnritsuMS9740A(AnritsuMS9710C):
         self.clear()
         self.write('SRT')
         self.wait_for_sweep(n=n, delay=delay)
-
-   

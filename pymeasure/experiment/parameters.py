@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2021 PyMeasure Developers
+# Copyright (c) 2013-2022 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,10 +61,8 @@ class Parameter(object):
             else:
                 self.group_by = {g: group_condition for g in group_by}
         elif group_by is not None:
-            raise TypeError("The provided group_by argument is not valid, should be either "
-                            "a string, a list of strings, or a dict with {string: condition} pairs.")
-
-
+            raise TypeError("The provided group_by argument is not valid, should be either a "
+                            "string, a list of strings, or a dict with {string: condition} pairs.")
 
     @property
     def value(self):

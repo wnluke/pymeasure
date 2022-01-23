@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2021 PyMeasure Developers
+# Copyright (c) 2013-2022 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ def _parse_trace_peak(vals):
 
 class AnritsuMS9710C(Instrument):
     """Anritsu MS9710C Optical Spectrum Analyzer."""
-    
+
     def __init__(self, adapter, name="Anritsu MS9710C Optical Spectrum Analyzer", **kwargs):
         """Constructor."""
         self.analysis_mode = None
@@ -107,13 +107,17 @@ class AnritsuMS9710C(Instrument):
     ####################################
     # Spectrum Parameters - Wavelength #
     ####################################
-    wavelength_center = Instrument.control('CNT?', 'CNT %g', "Center Wavelength of Spectrum Scan in nm.")
+    wavelength_center = Instrument.control(
+        'CNT?', 'CNT %g', "Center Wavelength of Spectrum Scan in nm.")
 
-    wavelength_span = Instrument.control('SPN?', 'SPN %g', "Wavelength Span of Spectrum Scan in nm.")
+    wavelength_span = Instrument.control(
+        'SPN?', 'SPN %g', "Wavelength Span of Spectrum Scan in nm.")
 
-    wavelength_start = Instrument.control('STA?', 'STA %g', "Wavelength Start of Spectrum Scan in nm.")
+    wavelength_start = Instrument.control(
+        'STA?', 'STA %g', "Wavelength Start of Spectrum Scan in nm.")
 
-    wavelength_stop = Instrument.control('STO?', 'STO %g', "Wavelength Stop of Spectrum Scan in nm.")
+    wavelength_stop = Instrument.control(
+        'STO?', 'STO %g', "Wavelength Stop of Spectrum Scan in nm.")
 
     wavelength_marker_value = Instrument.control(
         'MKV?', 'MKV %s',
