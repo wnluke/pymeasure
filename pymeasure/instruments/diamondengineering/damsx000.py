@@ -35,61 +35,67 @@ class ZeroPositionNotSet(Exception):
     """Raised when a zero position is required."""
     pass
 
+
 class Axis(object):
     """ Implementation of a DAMS x000 stepper motor axis."""
 
-    speed_base = Instrument.setting("0B%d",
-                                    """ A integer property to set the initial speed in steps/second.
-                                    """,
-                                    validator=strict_range,
-                                    values = (10, 500),
-                                    dynamic=True
-                                   )
-
-    speed_final = Instrument.setting("0E%d",
-                                     """ A integer property to set the final speed in steps/second
-                                     """,
-                                     validator=strict_range,
-                                     values = (20, 2000),
-                                     dynamic=True
-                                 )
-
-    speed_slope = Instrument.setting("0S%d",
-                                     """ A integer property to set the acceleration slope.
-                                     (Recommended values are in the range 1-3)
-                                     """,
-                                     validator=strict_range,
-                                     values = (1, 200),
-                                     dynamic=True
+    speed_base = Instrument.setting(
+        "0B%d",
+        """ A integer property to set the initial speed in steps/second.
+        """,
+        validator=strict_range,
+        values=(10, 500),
+        dynamic=True
     )
 
-    step_width = Instrument.setting("0%s",
-                                    """ A string property to set the step width
-                                    """,
-                                    validator=strict_discrete_set,
-                                    map_values = True,
-                                    values = {"FULL": "F",
-                                              "HALF": "H"},
-                                )
+    speed_final = Instrument.setting(
+        "0E%d",
+        """ A integer property to set the final speed in steps/second
+        """,
+        validator=strict_range,
+        values=(20, 2000),
+        dynamic=True
+    )
 
-    holding_current = Instrument.setting("0P%d",
-                                         """ A string property to set the holding current
-                                         """,
-                                         validator=strict_discrete_set,
-                                         map_values = True,
-                                         values = {"ZERO": 2,
-                                                   "HALF": 1},
-                                     )
-    
-    step_rel = Instrument.setting("0RN%+d",
-                                  """ A integer property to start a relative movement for the desired steps
-                                  """,
-                                  validator=strict_range,
-                                  values = (-100000, 100000), # Really no limits
-                              )
+    speed_slope = Instrument.setting(
+        "0S%d",
+        """ A integer property to set the acceleration slope.
+        (Recommended values are in the range 1-3)
+        """,
+        validator=strict_range,
+        values=(1, 200),
+        dynamic=True
+    )
 
-    angle_min = None # No limit in rotation
-    angle_max = None # No limit in rotation
+    step_width = Instrument.setting(
+        "0%s",
+        """ A string property to set the step width
+        """,
+        validator=strict_discrete_set,
+        map_values=True,
+        values={"FULL": "F",
+                "HALF": "H"},
+    )
+
+    holding_current = Instrument.setting(
+        "0P%d",
+        """ A string property to set the holding current
+        """,
+        validator=strict_discrete_set,
+        map_values=True,
+        values={"ZERO": 2,
+                "HALF": 1},
+    )
+
+    step_rel = Instrument.setting(
+        "0RN%+d",
+        """ A integer property to start a relative movement for the desired steps """,
+        validator=strict_range,
+        values=(-100000, 100000),  # Really no limits
+    )
+
+    angle_min = None  # No limit in rotation
+    angle_max = None  # No limit in rotation
 
     @property
     def angle(self):
@@ -111,7 +117,7 @@ class Axis(object):
         steps = self.angle_rel(movement_degrees)
         self.current_angle += self.steps2degrees(steps)
         if self.wrap:
-            self.current_angle %= 360 
+            self.current_angle %= 360
 
     def __init__(self, instrument, axis_name, wrap):
         self.instrument = instrument
@@ -123,7 +129,7 @@ class Axis(object):
 
     def set_zero(self, angle=0):
         """ Set the absolute angle to position (0 degree by default)
-        
+
         :param angle: Zero angle in degree
         """
         self.zero_set = True
@@ -133,7 +139,7 @@ class Axis(object):
         if command == ("0RN+0") or command == ("0RN-0"):
             expected_responses = [f'{self.axis}0!']
         if command.startswith("0RN"):
-            expected_responses = [f'{self.axis}0b',f'{self.axis}0f']
+            expected_responses = [f'{self.axis}0b', f'{self.axis}0f']
         elif command.startswith("0"):
             expected_responses = [f'{self.axis}0>']
         else:
@@ -144,7 +150,6 @@ class Axis(object):
             actual_response = self.instrument.read()
             if actual_response != response:
                 raise Exception(f'Expected response "{response}" but got "{actual_response}"')
-            
 
     def steps2degrees(self, steps):
         """ Translate steps to angle expressed in degrees
@@ -152,7 +157,7 @@ class Axis(object):
         :param steps: motor steps
         :return: angle movement from current position in degrees
         """
-        raise NotImplemented("Subclasses should implement this method")
+        raise NotImplementedError("Subclasses should implement this method")
 
     def degrees2steps(self, degrees):
         """ Translate angle movement from current position to motor steps
@@ -161,20 +166,22 @@ class Axis(object):
 
         :return: the actual angle expressed in degrees of movement after rounding with motor steps
         """
-        raise NotImplemented("Subclasses should implement this method")
+        raise NotImplementedError("Subclasses should implement this method")
 
     def angle_rel(self, degrees):
         steps = self.degrees2steps(degrees)
         self.step_rel = steps
         return steps
 
+
 class XAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor X axis (azimuth)."""
 
-    speed_base_values = (10,300)
-    speed_final_values = (20,600)
-    speed_slope_values = (1,3)
-    steps_per_full_revolution = 2880 # 360 degree revolution
+    speed_base_values = (10, 300)
+    speed_final_values = (20, 600)
+    speed_slope_values = (1, 3)
+    steps_per_full_revolution = 2880  # 360 degree revolution
+
     def degrees2steps(self, degrees):
         # TODO: Check that 2880 is OK both for full step and half step
         degrees = degrees % 360
@@ -188,9 +195,10 @@ class XAxis(Axis):
     def __init__(self, instrument):
         super().__init__(instrument, 'X', wrap=True)
 
+
 class YAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor Y axis (elevation).
-    
+
     Elevation axis is achieve using a threaded rod that rotates using a stepper motor.
     The elevation can  be moved from -45 degrees to + 45 degrees.
     The number of steps are calculated using formula derived from the following picture.
@@ -204,42 +212,48 @@ Picture details are as follow:
     - Positioner is observed from side
     - (0, 0) are the coordinates of the elevation rotation axis
     - (|x0|, |y0|) are the coordinates of the motor axis
-    - |d0| is the distance of (|x0|, |y0|) to coordinates (-R, h), that is the rod length when plate is in horizontal position
-    - (|x1|, |y1|) are the coordinated of the rod joint with bottom plate for an arbitrary angle :math:`{\\alpha}` 
-    - |d1| is the distance of (|x0|, |y0|) to coordinates (|x1|, |y1|), that is the rod length when plate is in forming an angle :math:`{\\alpha}` with horizontal plane
+    - |d0| is the distance of (|x0|, |y0|) to coordinates (-R, h), that is
+      the rod length when plate is in horizontal position
+    - (|x1|, |y1|) are the coordinated of the rod joint with bottom plate for
+      an arbitrary angle :math:`{\\alpha}`
+    - |d1| is the distance of (|x0|, |y0|) to coordinates (|x1|, |y1|), that
+      is the rod length when plate is in forming an angle :math:`{\\alpha}` with
+      horizontal plane
     - :math:`{\\alpha}` is an arbitrary angle with horizontal plane
     - R is the distance of the rod joint with bottom plate to the center of the positioner
     - h is the distance of rotation axis from the center of the positioner
-    - the two circles represent the circle of arbitrary radius |d1| and center (|x0|, |y0|) and the circle of radius :math:`\sqrt {R^2 + h^2}` and center (0, 0)
+    - the two circles represent the circle of arbitrary radius |d1| and center
+      (|x0|, |y0|) and the circle of radius :math:`\\sqrt {R^2 + h^2}` and
+      center (0, 0)
 
-.. |d0| replace:: d\ :sub:`0`
-.. |d1| replace:: d\ :sub:`1`
-.. |x0| replace:: x\ :sub:`0`
-.. |x1| replace:: x\ :sub:`1`
-.. |y0| replace:: y\ :sub:`0`
-.. |y1| replace:: y\ :sub:`1`
+.. |d0| replace:: d :sub:`0`
+.. |d1| replace:: d :sub:`1`
+.. |x0| replace:: x :sub:`0`
+.. |x1| replace:: x :sub:`1`
+.. |y0| replace:: y :sub:`0`
+.. |y1| replace:: y :sub:`1`
 
     """
-    speed_base_values = (10,500)
-    speed_final_values = (20,1200)
-    speed_slope_values = (1,3)
+    speed_base_values = (10, 500)
+    speed_final_values = (20, 1200)
+    speed_slope_values = (1, 3)
 
     def inches2m(a):
         return a*0.0254
 
-    x0 = inches2m(-3.95) # X coordinate of motor position
-    y0 = inches2m(-4.4) # Y coordinate of motor position
-    h =  inches2m(1.83)
-    R = inches2m(3.85) # To be verified
+    x0 = inches2m(-3.95)  # X coordinate of motor position
+    y0 = inches2m(-4.4)  # Y coordinate of motor position
+    h = inches2m(1.83)
+    R = inches2m(3.85)
     steps_per_meter = 2*2083/inches2m(1)
     R1 = sqrt(R**2+h**2)
     d0 = sqrt((x0+R)**2+(y0-h)**2)
     offset_angle = degrees(atan(h/R))
 
-    angle_min = -45.1 # Actually it is -45, extra 0.1 is to deal with roundings errors
-    angle_max = 45.1 # Actually it is 45, extra 0.1 is to deal with roundings errors
+    angle_min = -45.1  # Actually it is -45, extra 0.1 is to deal with roundings errors
+    angle_max = 45.1  # Actually it is 45, extra 0.1 is to deal with roundings errors
 
-    def distance(self,x1,y1,x2,y2):
+    def distance(self, x1, y1, x2, y2):
         """ Compute distance between two points """
         return sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
@@ -261,11 +275,11 @@ Picture details are as follow:
 
         a = (r0**2-r1**2+d**2)/(2*d)
         h = sqrt(r0**2-a**2)
-        x2 = x0+a*(x1-x0)/d   
-        y2 = y0+a*(y1-y0)/d   
-        x3 = x2+h*(y1-y0)/d     
-        y3 = y2-h*(x1-x0)/d 
-        
+        x2 = x0+a*(x1-x0)/d
+        y2 = y0+a*(y1-y0)/d
+        x3 = x2+h*(y1-y0)/d
+        y3 = y2-h*(x1-x0)/d
+
         x4 = x2-h*(y1-y0)/d
         y4 = y2+h*(x1-x0)/d
 
@@ -276,7 +290,7 @@ Picture details are as follow:
         # relative movements to center elevation axis
         angle = self.current_angle if self.zero_set else 0
 
-         # Check limits if any
+        # Check limits if any
         if self.angle_min is not None:
             assert((angle+degrees) >= self.angle_min)
 
@@ -312,13 +326,14 @@ Picture details are as follow:
         ds = self.distance(xs, ys, self.x0, self.y0)
 
         d1 = -steps/self.steps_per_meter + ds
-        x1,y1,x2,y2 = self.get_intersections(d1)
+        x1, y1, x2, y2 = self.get_intersections(d1)
         new_angle = -(degrees(atan(y2/x2))+self.offset_angle)
 
         return new_angle - angle
 
     def __init__(self, instrument):
         super().__init__(instrument, 'Y', wrap=False)
+
 
 class DAMSx000(Instrument):
     """ Represents the DAMS x000 series 2-axis positioner from Diamond Engineering
@@ -383,7 +398,7 @@ class DAMSx000(Instrument):
 
     def azimuth_rel(self, degree):
         """ Move the positioner azimuth angle relative to current position.
-        
+
         This method may be useful to center the azimuth to zero.
 
         See also :meth:`set_zero_position`
@@ -395,7 +410,7 @@ class DAMSx000(Instrument):
 
     def elevation_rel(self, degree):
         """ Move the positioner elevation angle relative to current position.
-        
+
         This method may be useful to center the elevation to zero.
 
         See also :meth:`set_zero_position`
@@ -413,8 +428,9 @@ class DAMSx000(Instrument):
         self.y.set_zero()
 
     def write(self, command):
-        """ Wrapper method for :meth:`Instrument.write <pymeasure.instruments.Instrument.write>` method to allow logging debug information """
+        """ Wrapper method for
+        :meth:`Instrument.write <pymeasure.instruments.Instrument.write>`
+        method to allow logging debug information """
         if self.debug:
-            log.debug ("=>{}".format(command))
+            log.debug("=>{}".format(command))
         return super().write(command)
-

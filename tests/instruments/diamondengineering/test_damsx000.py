@@ -22,13 +22,11 @@
 # THE SOFTWARE.
 #
 
-from time import sleep
-import logging
-
 import pytest
-from pymeasure.instruments.diamondengineering.damsx000 import DAMSx000, XAxis, YAxis, ZeroPositionNotSet
-from pymeasure.instruments.fakes import FakeInstrument, FakeAdapter
-from copy import copy
+from pymeasure.instruments.diamondengineering.damsx000 import (DAMSx000,
+                                                               ZeroPositionNotSet)
+from pymeasure.instruments.fakes import FakeAdapter
+
 
 class FakeDamsx000(FakeAdapter):
     def __init__(self, **kwargs):
@@ -39,7 +37,7 @@ class FakeDamsx000(FakeAdapter):
         """ Returns the last commands given after the
         last read call.
         """
-        result = "" 
+        result = ""
 
         if len(self._buffer) > 0:
             result = self._buffer.pop(0)
@@ -57,7 +55,7 @@ class FakeDamsx000(FakeAdapter):
         if command == ("0RN+0") or command == ("0RN-0"):
             expected_responses = [f'{axis}0!']
         if command.startswith("0RN"):
-            expected_responses = [f'{axis}0b',f'{axis}0f']
+            expected_responses = [f'{axis}0b', f'{axis}0f']
         elif command.startswith("0"):
             expected_responses = [f'{axis}0>']
         else:
@@ -67,17 +65,18 @@ class FakeDamsx000(FakeAdapter):
 
     def __repr__(self):
         return "<FakeDamsx000>"
-    
+
+
 class TestXAxis:
     """
     Unit tests for X axis movement
 
     """
     x = DAMSx000(FakeDamsx000()).x
-    
+
     def test_zero_position_not_set(self):
         with pytest.raises(ZeroPositionNotSet):
-            angle = self.x.angle
+            self.x.angle
 
         with pytest.raises(ZeroPositionNotSet):
             self.x.angle = 30
@@ -86,7 +85,7 @@ class TestXAxis:
 
     def test_shortest_path(self):
         # Always <= 180 degrees
-        for angle in range(0,3600,5):
+        for angle in range(0, 3600, 5):
             steps_180 = self.x.degrees2steps(180)
             steps_p = self.x.degrees2steps(angle)
             steps_m = self.x.degrees2steps(-angle)
@@ -94,8 +93,7 @@ class TestXAxis:
             assert (abs(steps_m) <= steps_180)
 
     def test_step_are_reversable(self):
-        for angle in range(0,360,5):
-            steps_180 = self.x.degrees2steps(180)
+        for angle in range(0, 360, 5):
             steps_p = self.x.degrees2steps(angle)
             steps_m = self.x.degrees2steps(-angle)
             if (angle != 180):
@@ -106,18 +104,11 @@ class TestXAxis:
 
         for angle in range(0, 360):
             self.x.angle = angle
-            assert(self.x.angle == pytest.approx(angle,abs=5e-3))
-
-    def test_step_are_reversable(self):
-        for angle in range(0,360,5):
-            steps_180 = self.x.degrees2steps(180)
-            steps_p = self.x.degrees2steps(angle)
-            steps_m = self.x.degrees2steps(-angle)
-            if (angle != 180):
-                assert (steps_p == -steps_m)
+            assert(self.x.angle == pytest.approx(angle, abs=5e-3))
 
     def test_zero_steps(self):
         assert (self.x.angle_rel(0) == 0)
+
 
 class TestYAxis:
     """
@@ -220,10 +211,10 @@ class TestYAxis:
     }
 
     y = DAMSx000(FakeDamsx000()).y
-    
+
     def test_zero_position_not_set(self):
         with pytest.raises(ZeroPositionNotSet):
-            angle = self.y.angle
+            self.y.angle
 
         with pytest.raises(ZeroPositionNotSet):
             self.y.angle = 30
@@ -249,10 +240,10 @@ class TestYAxis:
         self.y.set_zero()
         for angle in range(-45, 45):
             self.y.angle = angle
-            assert(self.y.angle == pytest.approx(angle,abs=5e-3))
+            assert(self.y.angle == pytest.approx(angle, abs=5e-3))
 
     def test_step_are_reversable(self):
-        for angle in range(-45,46,1):
+        for angle in range(-45, 46, 1):
             self.y.set_zero()
             steps_p = self.y.degrees2steps(angle)
             self.y.angle = angle
@@ -261,12 +252,13 @@ class TestYAxis:
 
     def test_steps_accuracy(self):
         self.y.set_zero()
-        for angle in range(-45,46,1):
+        for angle in range(-45, 46, 1):
             steps = self.y.degrees2steps(angle)
             assert (steps == self.lookup_table[angle])
 
     def test_zero_steps(self):
         assert (self.y.angle_rel(0) == 0)
+
 
 class TestDAMSx000:
     def test_init(self):
