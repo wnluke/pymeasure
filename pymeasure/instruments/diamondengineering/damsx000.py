@@ -22,9 +22,14 @@
 # THE SOFTWARE.
 #
 
+import logging
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from math import sqrt, sin, cos, radians, degrees, atan
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 
 class ZeroPositionNotSet(Exception):
     """Raised when a zero position is required."""
@@ -37,7 +42,8 @@ class Axis(object):
                                     """ A integer property to set the initial speed in steps/second.
                                     """,
                                     validator=strict_range,
-                                    values = (10, 300),
+                                    values = (10, 500),
+                                    dynamic=True
                                    )
 
     speed_final = Instrument.setting("0E%d",
@@ -45,6 +51,7 @@ class Axis(object):
                                      """,
                                      validator=strict_range,
                                      values = (20, 2000),
+                                     dynamic=True
                                  )
 
     speed_slope = Instrument.setting("0S%d",
@@ -53,8 +60,9 @@ class Axis(object):
                                      """,
                                      validator=strict_range,
                                      values = (1, 200),
+                                     dynamic=True
     )
-    
+
     step_width = Instrument.setting("0%s",
                                     """ A string property to set the step width
                                     """,
@@ -83,24 +91,6 @@ class Axis(object):
     angle_min = None # No limit in rotation
     angle_max = None # No limit in rotation
 
-    def __init__(self, instrument, axis_name):
-        self.instrument = instrument
-        assert((axis_name == 'X') or (axis_name == 'Y'))
-        self.axis = axis_name
-        self.zero_set = False
-        self.current_angle = None
-
-    def set_zero(self, angle=0):
-        """ Set the absolute angle to position (0 degree by default)
-        
-        :param angle: Zero angle in degree
-        """
-        self.zero_set = True
-        self.current_angle = angle
-
-    def write(self, command):
-        self.instrument.write("%s%s" % (self.axis, command))
-
     @property
     def angle(self):
         """ Return current absolute angle position """
@@ -118,38 +108,43 @@ class Axis(object):
             raise ZeroPositionNotSet("Zero position not set")
 
         movement_degrees = (degrees - self.current_angle)
-        steps = self.degrees2steps(movement_degrees)
-
-        self.step_rel = steps
+        steps = self.angle_rel(movement_degrees)
         self.current_angle += self.steps2degrees(steps)
+        if self.wrap:
+            self.current_angle %= 360 
 
-    def angle_rel(self, degrees):
-        steps = self.degrees2steps(degrees)
-        self.step_rel = steps
-        return steps
+    def __init__(self, instrument, axis_name, wrap):
+        self.instrument = instrument
+        assert((axis_name == 'X') or (axis_name == 'Y'))
+        self.axis = axis_name
+        self.zero_set = False
+        self.current_angle = None
+        self.wrap = wrap
 
-    def encoder_enable(self):
-        self.write("0qmC")
-        self.write("0qN-")
-        self.write("0qE")
+    def set_zero(self, angle=0):
+        """ Set the absolute angle to position (0 degree by default)
+        
+        :param angle: Zero angle in degree
+        """
+        self.zero_set = True
+        self.current_angle = angle
 
-    def read_encoder(self):
-        self.terminal.flush()
-        self.write("0qP")
-        time.sleep(.030)
-        readbuffer = self.terminal.read_all()
-        asciibuffer = readbuffer.decode("utf-8")
-        print(asciibuffer)
+    def write(self, command):
+        if command == ("0RN+0") or command == ("0RN-0"):
+            expected_responses = [f'{self.axis}0!']
+        if command.startswith("0RN"):
+            expected_responses = [f'{self.axis}0b',f'{self.axis}0f']
+        elif command.startswith("0"):
+            expected_responses = [f'{self.axis}0>']
+        else:
+            expected_responses = []
 
-    def read_count(self):
-        self.terminal.flush()
-        self.write("0m")
-        time.sleep(.030)
-        readbuffer = self.terminal.read_all()
-        asciibuffer = readbuffer.decode("utf-8")
-        splitbuffer = asciibuffer.split('>')
-        print(splitbuffer[1])
-        self.xcount = (splitbuffer[1])
+        self.instrument.write("%s%s" % (self.axis, command))
+        for response in expected_responses:
+            actual_response = self.instrument.read()
+            if actual_response != response:
+                raise Exception(f'Expected response "{response}" but got "{actual_response}"')
+            
 
     def steps2degrees(self, steps):
         """ Translate steps to angle expressed in degrees
@@ -168,19 +163,30 @@ class Axis(object):
         """
         raise NotImplemented("Subclasses should implement this method")
 
+    def angle_rel(self, degrees):
+        steps = self.degrees2steps(degrees)
+        self.step_rel = steps
+        return steps
+
 class XAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor X axis (azimuth)."""
 
+    speed_base_values = (10,300)
+    speed_final_values = (20,600)
+    speed_slope_values = (1,3)
     steps_per_full_revolution = 2880 # 360 degree revolution
     def degrees2steps(self, degrees):
         # TODO: Check that 2880 is OK both for full step and half step
-        return (self.steps_per_full_revolution * degrees) / 360
+        degrees = degrees % 360
+        if (abs(degrees) > 180):
+            degrees = degrees - 360
+        return round((self.steps_per_full_revolution * degrees) / 360)
 
     def steps2degrees(self, steps):
         return (360 * steps) / self.steps_per_full_revolution
 
     def __init__(self, instrument):
-        super().__init__(instrument, 'X')
+        super().__init__(instrument, 'X', wrap=True)
 
 class YAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor Y axis (elevation).
@@ -214,15 +220,18 @@ Picture details are as follow:
 .. |y1| replace:: y\ :sub:`1`
 
     """
+    speed_base_values = (10,500)
+    speed_final_values = (20,1200)
+    speed_slope_values = (1,3)
 
     def inches2m(a):
         return a*0.0254
 
-    x0 = inches2m(-4.2) # X coordinate of motor position
-    y0 = inches2m(-3.8) # Y coordinate of motor position
-    h =  inches2m(1.7)
-    R = inches2m(3.75) # To be verified
-    steps_per_meter = 2083/inches2m(1)
+    x0 = inches2m(-3.95) # X coordinate of motor position
+    y0 = inches2m(-4.4) # Y coordinate of motor position
+    h =  inches2m(1.83)
+    R = inches2m(3.85) # To be verified
+    steps_per_meter = 2*2083/inches2m(1)
     R1 = sqrt(R**2+h**2)
     d0 = sqrt((x0+R)**2+(y0-h)**2)
     offset_angle = degrees(atan(h/R))
@@ -287,7 +296,7 @@ Picture details are as follow:
         x1 = -R*cos(new_angle_rad)+h*sin(new_angle_rad)
         y1 = R*sin(new_angle_rad)+h*cos(new_angle_rad)
         d1 = self.distance(x1, y1, self.x0, self.y0)
-        return round((d1-ds) * self.steps_per_meter)
+        return round((ds-d1) * self.steps_per_meter)
 
     def steps2degrees(self, steps):
 
@@ -302,14 +311,14 @@ Picture details are as follow:
         ys = R * sin(angle_rad) + h * cos(angle_rad)
         ds = self.distance(xs, ys, self.x0, self.y0)
 
-        d1 = steps/self.steps_per_meter + ds
+        d1 = -steps/self.steps_per_meter + ds
         x1,y1,x2,y2 = self.get_intersections(d1)
         new_angle = -(degrees(atan(y2/x2))+self.offset_angle)
 
         return new_angle - angle
 
     def __init__(self, instrument):
-        super().__init__(instrument, 'Y')
+        super().__init__(instrument, 'Y', wrap=False)
 
 class DAMSx000(Instrument):
     """ Represents the DAMS x000 series 2-axis positioner from Diamond Engineering
@@ -319,13 +328,13 @@ class DAMSx000(Instrument):
         super().__init__(
             resource_name,
             "DAMS x000",
-            timeout=2000,
+            timeout=5000,
             write_termination='\r',
+            read_termination='\r',
             baud_rate=57600,
             includeSCPI=False,
             **kwargs
         )
-
         self.debug = debug
 
         self.x = XAxis(self)
