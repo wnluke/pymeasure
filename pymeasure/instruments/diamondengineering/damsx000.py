@@ -177,9 +177,6 @@ class Axis(object):
 class XAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor X axis (azimuth)."""
 
-    speed_base_values = (10, 300)
-    speed_final_values = (20, 600)
-    speed_slope_values = (1, 3)
     steps_per_full_revolution = 2880  # 360 degree revolution
 
     def degrees2steps(self, degrees):
@@ -193,6 +190,10 @@ class XAxis(Axis):
         return (360 * steps) / self.steps_per_full_revolution
 
     def __init__(self, instrument):
+        prefix = Instrument._Instrument__reserved_prefix
+        setattr(self, prefix + 'speed_base_values', (10, 300))
+        setattr(self, prefix + 'speed_final_values', (20, 600))
+        setattr(self, prefix + 'speed_slope_values', (1, 3))
         super().__init__(instrument, 'X', wrap=True)
 
 
@@ -234,9 +235,6 @@ Picture details are as follow:
 .. |y1| replace:: y :sub:`1`
 
     """
-    speed_base_values = (10, 500)
-    speed_final_values = (20, 1200)
-    speed_slope_values = (1, 3)
 
     def inches2m(a):
         return a*0.0254
@@ -332,6 +330,10 @@ Picture details are as follow:
         return new_angle - angle
 
     def __init__(self, instrument):
+        prefix = Instrument._Instrument__reserved_prefix
+        setattr(self, prefix + 'speed_base_values', (10, 500))
+        setattr(self, prefix + 'speed_final_values', (20, 1200))
+        setattr(self, prefix + 'speed_slope_values', (1, 3))
         super().__init__(instrument, 'Y', wrap=False)
 
 
