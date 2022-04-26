@@ -200,7 +200,7 @@ class XAxis(Axis):
 class YAxis(Axis):
     """ Implementation of a DAMS x000 stepper motor Y axis (elevation).
 
-    Elevation axis is achieve using a threaded rod that rotates using a stepper motor.
+    Elevation axis is achieved using a threaded rod that rotates using a stepper motor.
     The elevation can  be moved from -45 degrees to + 45 degrees.
     The number of steps are calculated using formula derived from the following picture.
 
