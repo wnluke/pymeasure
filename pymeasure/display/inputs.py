@@ -92,7 +92,7 @@ class StringInput(Input, QtGui.QLineEdit):
 
     def setValue(self, value):
         # QtGui.QLineEdit has a setText() method instead of setValue()
-        return super().setText(value)
+        return super().setText(str(value))
 
     def setSuffix(self, value):
         pass
