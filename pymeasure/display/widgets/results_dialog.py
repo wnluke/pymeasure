@@ -27,10 +27,10 @@ import logging
 import os
 import pyqtgraph as pg
 
-from ..curves import ResultsCurve
+from ..polar_curves import ResultsPolarCurve
 from ..Qt import QtCore, QtGui
 from ...experiment.results import Results
-from .plot_widget import PlotWidget
+from .polar_plot_widget import PolarPlotWidget
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -61,7 +61,7 @@ class ResultsDialog(QtGui.QFileDialog):
         param_vbox_widget = QtGui.QWidget()
         metadata_vbox_widget = QtGui.QWidget()
 
-        self.plot_widget = PlotWidget("Results", self.columns,
+        self.plot_widget = PolarPlotWidget("Results", self.columns,
                                       self.x_axis, self.y_axis, parent=self)
         self.plot = self.plot_widget.plot
         self.preview_param = QtGui.QTreeWidget()
@@ -105,7 +105,7 @@ class ResultsDialog(QtGui.QFileDialog):
 
             curve = {}
             for column in self.columns:
-                curve[column] = ResultsCurve(results,
+                curve[column] = ResultsPolarCurve(results,
                                              x=self.plot_widget.plot_frame.x_axis,
                                              y=column,
                                              # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
