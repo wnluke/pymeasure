@@ -38,8 +38,9 @@ log.addHandler(logging.NullHandler())
 class PolarPlotWidget3D(TabWidget, QtGui.QWidget):
 
     def __init__(self, name, columns, x_axis=None, y_axis=None, refresh_time=0.2,
-                 check_status=True, linewidth=1, parent=None, resultClass = None, frame=None):
+                 check_status=True, linewidth=1, parent=None, model_file = None):
         super().__init__(name, parent)
+        self.model_file = model_file
         self.columns = columns
         self.refresh_time = refresh_time
         self.check_status = check_status
@@ -79,7 +80,8 @@ class PolarPlotWidget3D(TabWidget, QtGui.QWidget):
             self.columns[0],
             self.columns[1],
             self.refresh_time,
-            self.check_status
+            self.check_status,
+            model_file = self.model_file,
         )
         self.updated = self.plot_frame.updated
         self.plot = self.plot_frame.plot

@@ -101,8 +101,9 @@ class PolarPlotFrame3D(QtWidgets.QFrame):
             "ETSI Limit": -30,
             }
 
-    def __init__(self, x_axis=None, y_axis=None, refresh_time=0.2, check_status=True, parent=None):
+    def __init__(self, x_axis=None, y_axis=None, refresh_time=0.2, check_status=True, parent=None, model_file = None):
         super().__init__(parent)
+        self.model_file = model_file
         self.refresh_time = refresh_time
         self.check_status = check_status
         self.polar_axis_max_circle = 25
@@ -143,7 +144,7 @@ class PolarPlotFrame3D(QtWidgets.QFrame):
         body3D_cb.setChecked(True)
         self.hbox.addWidget(body3D_cb)
         from stl import mesh
-        import pywavefront
+        # import pywavefront
         # stl_mesh = mesh.Mesh.from_file("BLUENRG_LPS_QFN32_SMD_EMC_2L.stl")
         # stl_mesh.translate(np.array([15.45,-27.93,0]))
         # stl_mesh.rotate([1, 0, 0], -np.pi/2)
@@ -162,11 +163,11 @@ class PolarPlotFrame3D(QtWidgets.QFrame):
         # mesh_data = MeshData(vertexes=vertices_array, faces=faces_array)
         # # vehicleGL = GLMeshItem(meshdata=vehicleMesh, shader='shaded',drawEdges=False,  smooth=True)
 
-
-        stl_mesh = mesh.Mesh.from_file("STEVAL_IDB013V1.stl")
-        stl_mesh.translate(np.array([-40,-27.5,0]))
-        stl_mesh.rotate([0, 0, 1], np.pi/2)
-        stl_mesh.rotate([1, 0, 0], np.pi/2)
+        if self.model_file != None:
+            stl_mesh = mesh.Mesh.from_file(self.model_file)
+            stl_mesh.translate(np.array([-40,-27.5,0]))
+            stl_mesh.rotate([0, 0, 1], np.pi/2)
+            stl_mesh.rotate([1, 0, 0], np.pi/2)
 
         points = stl_mesh.points.reshape(-1, 3)
         faces = np.arange(points.shape[0]).reshape(-1, 3)
@@ -179,27 +180,14 @@ class PolarPlotFrame3D(QtWidgets.QFrame):
         # mesh.scale(0.5,0.5,0.5)
         self.plot.addItem(mesh)
 
-
         vbox.addLayout(self.hbox)
-        
-        # https://ozeki.hu/attachments/116/Eiffel_tower_sample.STL
+
         axis = MyGLAxisItem(QtGui.QVector3D(50,50,50), glOptions='opaque')
         g = GLGridItem()
         g.scale(10, 10, 1)
         
         self.plot.addItem(axis)
         self.plot.addItem(g)
-
-        
-        
-        
-        
-        
-        
-        
-
-        
-        
 
         vbox.addWidget(self.plot)
         self.setLayout(vbox)
