@@ -173,6 +173,7 @@ class Results:
         self._metadata_count = -1
 
         self.formatter = CSVFormatter(columns=self.procedure.DATA_COLUMNS)
+        self.filters = {}
 
         if isinstance(data_filename, (list, tuple)):
             data_filenames, data_filename = data_filename, data_filename[0]

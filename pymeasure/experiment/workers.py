@@ -118,6 +118,9 @@ class Worker(StoppableThread):
             self.recorder.handle(record)
         elif topic == 'status' or topic == 'progress':
             self.monitor_queue.put((topic, record))
+        elif topic == 'filter':
+            for key in record:
+                self.results.filters[key] = record[key]
 
     def handle_abort(self):
         log.exception("User stopped Worker execution prematurely")
