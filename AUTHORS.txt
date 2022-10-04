@@ -49,4 +49,6 @@ Jack Van Sambeek
 JC Arbelbide
 Florian Jünger
 Benedikt Moneke
+Asaf Yagoda
 Fabio Garzetti
+Daniel Schmeer

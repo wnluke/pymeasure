@@ -31,3 +31,4 @@ from .rohdeschwarz_fsw13 import RS_FSW13
 from .rohdeschwarz_fsiq3 import RS_FSIQ3
 from .sfm import SFM
 from .fsl import FSL
+from .hmp import HMP4040
