@@ -208,9 +208,9 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         
         RSGenerator(tag_list).generate(stream)
         stream.seek(0)
-        self.adapter.write_binary_values(f'BB:ARB:WAV:DATA "{name}",',
-                                         stream.read(),
-                                         datatype='B')
+        self.write_binary_values(f'BB:ARB:WAV:DATA "{name}",',
+                                 stream.read(),
+                                 datatype='B')
         # self.write(f':BB:ARBitrary:WAVeform:CLOCk "{name}", {sampling_rate:d}')
         # Select waveform
         self.write(f"BB:ARB:WAV:SEL '{name:s}'")

@@ -280,6 +280,8 @@ class Instrument:
         :param \\*args, \\**kwargs: Further arguments to hand to the Adapter.
         """
         self.adapter.write_binary_values(command, values, *args, **kwargs)
+        # Wait for completion
+        self.complete
 
     # Communication functions
     def wait_for(self, query_delay=0):

@@ -228,8 +228,6 @@ class VISAAdapter(Adapter):
 
         try:
             return_value = super().write_binary_values(command, values, **kwargs)
-            # Wait for completion
-            self.ask("*OPC?")
         finally:
             self.connection.timeout = oldtimeout
 

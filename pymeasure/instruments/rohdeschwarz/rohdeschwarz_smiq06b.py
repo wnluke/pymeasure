@@ -184,9 +184,9 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         
         RSGenerator(tag_list).generate(stream)
         stream.seek(0)
-        self.adapter.write_binary_values(f':ARB:WAV:DATA "{name}",',
-                                         stream.read(),
-                                         datatype='B')
+        self.write_binary_values(f':ARB:WAV:DATA "{name}",',
+                                 stream.read(),
+                                 datatype='B')
         self.write(f':ARB:CLOC:SOUR INT')
         self.write(f':ARB:CLOC {sampling_rate:d}Hz')
         # Select waveform
@@ -246,7 +246,8 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
             value = int(val[i:i+8], 2) ^ xor_mask
             values.append(value)
 
-        self.adapter.write_binary_values("SOURce:DM:DLISt:DATA ", values, timeout=20000, datatype='B')
+        self.write_binary_values("SOURce:DM:DLISt:DATA ", values,
+                                 timeout=20000, datatype='B')
         self.complete
 
         # Write control list
@@ -261,7 +262,9 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         for i,v in enumerate(ctrls):
             # Switch on the power at the beginning of each sequence and switch it off at end of the sequences
             values.append( (((i+1)%2) << 31) + (v & index_mask))
-        self.adapter.write_binary_values("SOURce:DM:CLISt:DATA ", values, timeout=20000, datatype="I", is_big_endian=True)
+        self.write_binary_values("SOURce:DM:CLISt:DATA ", values,
+                                 timeout=20000, datatype="I",
+                                 is_big_endian=True)
         self.complete
 
         # Switch back to normal mode
