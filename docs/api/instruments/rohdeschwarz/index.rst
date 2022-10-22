@@ -15,3 +15,4 @@ This section contains specific documentation on the Rohde & Schwarz instruments 
    rohdeschwarz_sml01
    sfm
    fsl
+   hmp

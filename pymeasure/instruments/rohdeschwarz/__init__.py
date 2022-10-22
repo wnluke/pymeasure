@@ -28,3 +28,4 @@ from .rohdeschwarz_smiq06b import RS_SMIQ06B, RS_SMIQ03B, RS_SMIQ0xB
 from .rohdeschwarz_sml01 import RS_SML01
 from .sfm import SFM
 from .fsl import FSL
+from .hmp import HMP4040
