@@ -158,13 +158,14 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         return data
 
     def data_iq_load(self, iqdata, sampling_rate, name, markers=None):
-        self.adapter.write_binary_values(f'MEM:DATA "WFM1:{name}",', self._get_iqdata(iqdata),
-                                         is_big_endian=True, datatype='h')
+        self.write_binary_values(f'MEM:DATA "WFM1:{name}",',
+                                 self._get_iqdata(iqdata),
+                                 is_big_endian=True, datatype='h')
         if markers is not None:
             assert (len(iqdata) == len(markers))
-            self.adapter.write_binary_values(f'MEM:DATA "MKR1:{name}",',
-                                             self._get_markerdata(markers),
-                                             datatype='B')
+            self.write_binary_values(f'MEM:DATA "MKR1:{name}",',
+                                     self._get_markerdata(markers),
+                                     datatype='B')
         self.write(f":SOURce:RADio:ARB:SCLock:RATE {sampling_rate:d}")
         # Select waveform
         self.write(f':SOURce:RADio:ARB:WAVeform "WFM1:{name:s}"')
@@ -199,13 +200,13 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
             data += [(0x14 + int(bit, 2)) for bit in bitseq]
             # Add bits with RF off
             data += [0x10]*spacing
-        self.adapter.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"PacketsToTransmit\",",
-                                         data, timeout=20000, datatype='B')
+        self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"PacketsToTransmit\",",
+                                 data, timeout=20000, datatype='B')
         self.complete
         self.write("RADIO:CUSTOM:DATA:PRAM \"PacketsToTransmit\"")
         self.data_ramping_workaround = True
-        self.adapter.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"RampingWorkaround\",",
-                                         [0x94], timeout=20000, datatype='B')
+        self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"RampingWorkaround\",",
+                                 [0x94], timeout=20000, datatype='B')
 
     def data_trigger_setup(self, mode='SINGLE'):
         """ Configure the trigger system for bitsequence transmission

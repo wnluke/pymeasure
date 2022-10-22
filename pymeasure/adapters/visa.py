@@ -208,6 +208,31 @@ class VISAAdapter(Adapter):
         data = binary[header_bytes:]
         return np.fromstring(data, dtype=dtype)
 
+    def write_binary_values(self, command, values, timeout=None, **kwargs):
+        """ Write binary data to the instrument, e.g. waveform for signal generators
+
+        This command is often used to transfer large set of data, eg. waveform for signal
+        generators and the timeout parameter is very useful since VISA enforce a timeout also
+        during write operation.
+
+        :param command: SCPI command to be sent to the instrument
+        :param values: iterable representing the binary values
+        :param timeout: timeout in milliseconds, None to leave untouched
+        :param kwargs: Key-word arguments to pass onto `write_binary_values`
+        :returns: number of bytes written
+        """
+
+        oldtimeout = self.connection.timeout
+        if not (timeout is None):
+            self.connection.timeout = timeout
+
+        try:
+            return_value = super().write_binary_values(command, values, **kwargs)
+        finally:
+            self.connection.timeout = oldtimeout
+
+        return return_value
+
     def wait_for_srq(self, timeout=25, delay=0.1):
         """ Block until a SRQ, and leave the bit high
 
