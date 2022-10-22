@@ -20,6 +20,7 @@ Instruments by manufacturer:
 .. toctree::
    :maxdepth: 2
 
+   activetechnologies/index
    advantest/index
    agilent/index
    ametek/index

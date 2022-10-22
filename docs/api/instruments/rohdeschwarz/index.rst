@@ -13,3 +13,4 @@ This section contains specific documentation on the Rohde & Schwarz instruments 
    rohdeschwarz_fsw13
    sfm
    fsl
+   hmp
