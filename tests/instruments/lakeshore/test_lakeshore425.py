@@ -22,6 +22,42 @@
 # THE SOFTWARE.
 #
 
-from .lakeshore331 import LakeShore331
-from .lakeshore421 import LakeShore421
-from .lakeshore425 import LakeShore425
+from pymeasure.test import expected_protocol
+
+from pymeasure.instruments.lakeshore import LakeShore425
+
+
+def test_init():
+    with expected_protocol(
+            LakeShore425, []):
+        pass  # Verify the expected communication.
+
+
+def test_unit():
+    # from manual
+    with expected_protocol(
+            LakeShore425, [(b"UNIT?", b"1")]) as instr:
+        assert instr.unit == "G"
+
+
+def test_unit_setter():
+    # from manual
+    with expected_protocol(
+            LakeShore425, [(b"UNIT 2", None)]) as instr:
+        instr.unit = "T"
+
+
+def test_field():
+    # from manual
+    with expected_protocol(
+            LakeShore425,
+            [(b"RDGFIELD?", b"+123.456E-01")]
+            ) as instr:
+        assert instr.field == 123.456e-1
+
+
+def test_zero_probe():
+    # from manual
+    with expected_protocol(
+            LakeShore425, [(b"ZPROBE", None)]) as instr:
+        instr.zero_probe()
