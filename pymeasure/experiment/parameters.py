@@ -551,7 +551,7 @@ class Metadata(object):
 
     :param name: The parameter name
     :param fget: The parameter fget function; can be provided as a callable,
-        or as be a string, in which case it is assumed to be the name of a
+        or as a string, in which case it is assumed to be the name of a
         method or attribute of the `Procedure` class in which the Metadata is
         defined. Passing a string also allows for nested attributes by separating
         them with a period (e.g. to access an attribute or method of an
@@ -587,7 +587,8 @@ class Metadata(object):
 
     def evaluate(self, parent=None, new_value=None):
         if new_value is not None and self.fget is not None:
-            raise ValueError("Metadata with a defined fget method cannot be manually assigned a value")
+            raise ValueError("Metadata with a defined fget method"
+                             " cannot be manually assigned a value")
         elif new_value is not None:
             self._value = new_value
         elif self.fget is not None:
