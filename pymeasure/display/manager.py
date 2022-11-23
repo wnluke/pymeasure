@@ -259,9 +259,12 @@ class Manager(QtCore.QObject):
         self._clean_up()
         experiment.browser_item.setProgress(100.)
         for curve in experiment.curve_list:
-            if curve:
+            if isinstance(curve, dict):
                 for i_curve in curve.values():
                     i_curve.update_data()
+            else:
+                if curve:
+                    curve.update_data()
         self.finished.emit(experiment)
         if self._is_continuous:  # Continue running procedures
             self.next()
