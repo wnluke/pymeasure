@@ -42,7 +42,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
         self.setModel(QtGui.QStandardItemModel(self))
 
     def addItem(self, text, userData=None):
-        ret = super().addItem(text, userData)
+        super().addItem(text, userData)
         item = self.model().item(self.count() - 1, 0)
         item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
@@ -86,8 +86,6 @@ class CheckableComboBox(QtWidgets.QComboBox):
             if self.item_checked(i):
                 checkedItems.append(self.itemText(i))
 
-        #call this method
-        # self.update_labels(checkedItems)
         return checkedItems
 
     # method to update the label
@@ -123,7 +121,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
             # shows the selected items
             item_new_text_label = text_label + ' - selected index: ' + n
 
-           # setting text to combo box
+            # setting text to combo box
             self.setItemText(i, item_new_text_label)
 
 
@@ -217,13 +215,13 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             if need_pen:
                 kwargs['pen'] = pg.mkPen(color=color,
                                          width=self.linewidth,
-                                         style = styles[index % len(styles)],
+                                         style=styles[index % len(styles)],
                                          )
             curve[column] = ResultsCurve(results,
                                          x=self.plot_frame.x_axis,
                                          y=column,
                                          **kwargs
-                                     )
+                                         )
             curve[column].setSymbol(None)
             curve[column].setSymbolBrush(None)
 
@@ -249,12 +247,12 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
     def load(self, curve):
         # Add new set of curves
         checked = self.columns_y.checked_items()
-        for i,i_curve in enumerate(curve.values()):
+        for i, i_curve in enumerate(curve.values()):
             i_curve.x = self.columns_x.currentText()
             i_curve.y = self.columns[i]
             i_curve.update_data()
             self.plot.addItem(i_curve)
-            if not i_curve.y in checked:
+            if i_curve.y not in checked:
                 i_curve.hide()
                 i_curve.update_data()
 
