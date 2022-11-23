@@ -23,10 +23,12 @@
 #
 
 from ..errors import RangeError, RangeException
+from .channel import Channel
 from .instrument import Instrument
 from .resources import list_resources
 from .validators import discreteTruncate
 
+from . import activetechnologies
 from . import advantest
 from . import agilent
 from . import ametek
@@ -38,6 +40,7 @@ from . import anritsu
 from . import attocube
 from . import danfysik
 from . import deltaelektronika
+from . import eurotest
 from . import fluke
 from . import fwbell
 from . import hcp
@@ -52,6 +55,7 @@ from . import oxfordinstruments
 from . import parker
 from . import razorbill
 from . import rohdeschwarz
+from . import siglenttechnologies
 from . import signalrecovery
 from . import srs
 from . import tektronix

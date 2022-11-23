@@ -27,7 +27,7 @@ import logging
 import pyqtgraph as pg
 
 from ..curves import ResultsCurve
-from ..Qt import QtCore, QtGui
+from ..Qt import QtCore, QtWidgets
 from .tab_widget import TabWidget
 from .plot_frame import PlotFrame
 
@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class CheckableComboBox(QtGui.QComboBox):
+class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):
         super(CheckableComboBox, self).__init__()
         self.view().pressed.connect(self.handle_item_pressed)
@@ -44,7 +44,7 @@ class CheckableComboBox(QtGui.QComboBox):
     def addItem(self, text, userData=None):
         ret = super().addItem(text, userData)
         item = self.model().item(self.count() - 1, 0)
-        item.setCheckState(QtCore.Qt.Unchecked)
+        item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
     # when any item get pressed
     def handle_item_pressed(self, index):
@@ -52,18 +52,18 @@ class CheckableComboBox(QtGui.QComboBox):
         item = self.model().itemFromIndex(index)
 
         # make it check if unchecked and vice-versa
-        if item.checkState() == QtCore.Qt.Checked:
-            item.setCheckState(QtCore.Qt.Unchecked)
+        if item.checkState() == QtCore.Qt.CheckState.Checked:
+            item.setCheckState(QtCore.Qt.CheckState.Unchecked)
         else:
-            item.setCheckState(QtCore.Qt.Checked)
+            item.setCheckState(QtCore.Qt.CheckState.Checked)
 
     def set_check_state(self, entry, value):
         index = self.findText(entry)
         item = self.model().item(index, 0)
         if value:
-            item.setCheckState(QtCore.Qt.Checked)
+            item.setCheckState(QtCore.Qt.CheckState.Checked)
         else:
-            item.setCheckState(QtCore.Qt.Unchecked)
+            item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
     # method called by check_items
     def item_checked(self, index):
@@ -72,7 +72,7 @@ class CheckableComboBox(QtGui.QComboBox):
         item = self.model().item(index, 0)
 
         # return true if checked else false
-        return item.checkState() == QtCore.Qt.Checked
+        return item.checkState() == QtCore.Qt.CheckState.Checked
 
     # calling method
     def checked_items(self):
@@ -127,7 +127,7 @@ class CheckableComboBox(QtGui.QComboBox):
             self.setItemText(i, item_new_text_label)
 
 
-class PlotWidget(TabWidget, QtGui.QWidget):
+class PlotWidget(TabWidget, QtWidgets.QWidget):
     """ Extends :class:`PlotFrame<pymeasure.display.widgets.plot_frame.PlotFrame>`
     to allow different columns of the data to be dynamically chosen
     """
@@ -155,14 +155,14 @@ class PlotWidget(TabWidget, QtGui.QWidget):
             self.plot_frame.change_y_axis(y_list)
 
     def _setup_ui(self):
-        self.columns_x_label = QtGui.QLabel(self)
+        self.columns_x_label = QtWidgets.QLabel(self)
         self.columns_x_label.setMaximumSize(QtCore.QSize(45, 16777215))
         self.columns_x_label.setText('X Axis:')
-        self.columns_y_label = QtGui.QLabel(self)
+        self.columns_y_label = QtWidgets.QLabel(self)
         self.columns_y_label.setMaximumSize(QtCore.QSize(45, 16777215))
         self.columns_y_label.setText('Y Axis:')
 
-        self.columns_x = QtGui.QComboBox(self)
+        self.columns_x = QtWidgets.QComboBox(self)
         self.columns_y = CheckableComboBox()
         for column in self.columns:
             self.columns_x.addItem(column)
@@ -182,10 +182,10 @@ class PlotWidget(TabWidget, QtGui.QWidget):
         self.columns_y.setCurrentIndex(1)
 
     def _layout(self):
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(0)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(10)
         hbox.setContentsMargins(-1, 6, -1, 6)
         hbox.addWidget(self.columns_x_label)
