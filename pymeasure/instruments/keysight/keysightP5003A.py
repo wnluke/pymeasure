@@ -47,7 +47,12 @@ class KeysightP5003A(SpectrumAnalyzer):
 
     trace_mode_values = ("OFF", "MIN", "MAX")
 
-    average_type_values = {"VOLTAGE" : "VOLT", "POWER" : "POW", "VIDEO" : "LOG", "VMAX" : "VMAX", "VMIN" : "VMIN"}
+    average_type_values = {"VOLTAGE": "VOLT",
+                           "POWER": "POW",
+                           "VIDEO": "LOG",
+                           "VMAX": "VMAX",
+                           "VMIN": "VMIN",
+                           }
 
     input_attenuation_get_command = "SOURce:POWer:ATTenuation:RECeiver:TEST?;"
     input_attenuation_set_command = "SOURce:POWer:ATTenuation:RECeiver:TEST %d;"

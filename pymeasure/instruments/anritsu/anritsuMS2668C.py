@@ -23,11 +23,11 @@
 #
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set
+from pymeasure.instruments.validators import strict_discrete_set
 
 from io import StringIO
 import numpy as np
-import pandas as pd
+
 
 def anritsu_get_trace_mode(mode):
     # TODO check this function
@@ -47,31 +47,32 @@ def anritsu_get_trace_mode(mode):
         'AWR ON;AMD 5': 'OVWR',
     }
     return mode_map[mode]
-    
+
+
 def anritsu_set_trace_mode(mode):
     # TODO check these settings
     mode_map = {
-    'WRITE': "1 ; AMD 0",
-    # 'BLANK': "BLANK", # To be checked
-    'VIEW': "0 ; AMD 0",
-    'MAXHOLD': "1 ; AMD 1",
-    'MINHOLD': "1 ; AMD 3",
+        'WRITE': "1 ; AMD 0",
+        # 'BLANK': "BLANK", # To be checked
+        'VIEW': "0 ; AMD 0",
+        'MAXHOLD': "1 ; AMD 1",
+        'MINHOLD': "1 ; AMD 3",
     }
     return mode_map[mode]
-    
+
 
 class AnritsuMS2668C(SpectrumAnalyzer):
     """ This class represent an Anritsu MS2668C Spectrum Analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-100, 30)
     reference_level_set_command = "RL %g DBM"
     reference_level_get_command = "RL?"
-    
+
     resolution_bw_values = (10, 3e6)
     resolution_bw_set_command = "RB %d"
     resolution_bw_get_command = "RB?"
-    
+
     input_attenuation_values = (0, 10, 20, 30, 40, 50, 60, 70)
     input_attenuation_validator = strict_discrete_set
     input_attenuation_set_command = "AT %d"
@@ -89,33 +90,34 @@ class AnritsuMS2668C(SpectrumAnalyzer):
     stop_frequency_set_command = "FB %d"
     stop_frequency_get_command = "FB?"
 
-    frequency_points = None # Not available
+    frequency_points = None  # Not available
 
     frequency_step_values = (1, 40e9)
     frequency_step_set_command = "SS %d"
     frequency_step_get_command = "SS?"
-    
+
     center_frequency_values = (-100e6, 40e9)
     center_frequency_set_command = "CF %d"
     center_frequency_get_command = "CF?"
 
     sweep_time_values = (0.02, 1000)
     sweep_time_set_command = "ST %eS"
-    sweep_time_get_command = "ST?" # Returned value is uS
+    sweep_time_get_command = "ST?"  # Returned value is uS
 
-    detector_values = {"NORM" : "NRM", "POS" : "POS", "SAMP": "SMP", "NEG" : "NEG"}
+    detector_values = {"NORM": "NRM", "POS": "POS", "SAMP": "SMP", "NEG": "NEG"}
     detector_map_values = True
     detector_set_command = "DET %s"
     detector_get_command = "DET?"
 
     sweep_mode_continuous = Instrument.setting(
         "%s",
-        """ A boolean property that allows you to switches the analyzer between continuous-sweep and single-sweep mode.
+        """ A boolean property that allows you to switches the analyzer between
+        continuous-sweep and single-sweep mode.
         """,
         validator=strict_discrete_set,
-        values={"ON" : "CONTS",
-                "OFF" : "SNGLS"},
-        map_values = True,
+        values={"ON": "CONTS",
+                "OFF": "SNGLS"},
+        map_values=True,
         dynamic=True
     )
 
@@ -123,12 +125,12 @@ class AnritsuMS2668C(SpectrumAnalyzer):
     trace_mode_get_process = anritsu_get_trace_mode
     trace_mode_set_command = "AWR %s"
     trace_mode_set_process = anritsu_set_trace_mode
-    
+
     average_type_get_command = "AMD?"
     average_type_set_command = "%s"
     average_type_values = {
-        "POWER" : "AMD 2",
-        "_NORMAL" : "AMD 0",
+        "POWER": "AMD 2",
+        "_NORMAL": "AMD 0",
         "_MAXHOLD": "AMD 1",
         "_MINHOLD": "AMD 3",
         "_CUMULATIVE": "AMD 4",
@@ -147,7 +149,7 @@ class AnritsuMS2668C(SpectrumAnalyzer):
         """ Returns a numpy array of the data for a particular trace
         based on the trace number (1, 2).
         """
-        trace = chr(64+number) # 'A' or 'B'
+        trace = chr(64+number)  # 'A' or 'B'
         self.write("BIN 0")
         data = np.loadtxt(
             StringIO(self.ask("XM%c? 0,501" % trace)),
