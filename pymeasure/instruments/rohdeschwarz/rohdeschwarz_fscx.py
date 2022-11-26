@@ -23,12 +23,12 @@
 #
 
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set
+
 
 class RS_FSC6(SpectrumAnalyzer):
     """ This class represent an Rohde&Schwarz FSC6 Spectrum Analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-80, 30)
 
     frequency_span_values = (10, 6e9)
@@ -44,20 +44,22 @@ class RS_FSC6(SpectrumAnalyzer):
     input_attenuation_get_command = ":INPut:ATTenuation?;"
     input_attenuation_set_command = ":INPut:ATTenuation %d;"
 
-    average_type = None # Not supported
-    sweep_type = None # Not supported
+    average_type = None  # Not supported
+    sweep_type = None  # Not supported
 
     def __init__(self, resourceName, description, **kwargs):
-        super(RS_FSCx, self).__init__(
+        super().__init__(
             resourceName,
             description,
             **kwargs
         )
 
+
 class RS_FSC3(RS_FSC6):
     """ Variant of Rohde&Schwarz FSC6 Spectrum Analyzer covering up to 3 GHz """
 
     frequency_span_values = (10, 3e9)
+
     def __init__(self, resourceName, **kwargs):
         super().__init__(
             resourceName,

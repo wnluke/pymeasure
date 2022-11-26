@@ -22,12 +22,14 @@
 # THE SOFTWARE.
 #
 
+from io import BytesIO
+import re
+
 from pymeasure.instruments.rf_signal_generator import RFSignalGeneratorIQ, RFSignalGenerator
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import truncated_range, strict_discrete_set, strict_range
-from .rs_waveform import RSGenerator, WaveformTag, TypeTag, CLW4Tag, IntegerTag
-from io import BytesIO
-import re
+from .rs_waveform import RSGenerator, WaveformTag, TypeTag, IntegerTag, CLW4Tag
+
 
 class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     # Define instrument limits according to datasheet
@@ -45,14 +47,14 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     # 11.14.2 SOURce:AWGN Subsystem
     ####################################################################
     awgn_mode = Instrument.control(
-        ":AWGN:MODE?", ":AWGN:MODE %s", 
+        ":AWGN:MODE?", ":AWGN:MODE %s",
         """ A string property that define the mode for generating the interfering signal.
         This property can be set. """,
         validator=strict_discrete_set,
         values=("ONLY", "ADD"),
     )
     awgn_bandwidth = Instrument.control(
-        ":AWGN:BWIDth?", ":AWGN:BWIDth %g", 
+        ":AWGN:BWIDth?", ":AWGN:BWIDth %g",
         """ A float property to set the awgn bandwidth in Hz.
         This property can be set. """,
         validator=strict_range,
@@ -60,7 +62,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     )
 
     awgn_cn = Instrument.control(
-        ":AWGN:CNRatio?", ":AWGN:CNRatio %g", 
+        ":AWGN:CNRatio?", ":AWGN:CNRatio %g",
         """ A float property to set or query C/N in the selected bandwidth
         Unit is dB. """,
         validator=truncated_range,
@@ -68,7 +70,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     )
 
     awgn_enable = Instrument.control(
-        ":AWGN:STATe?", ":AWGN:STATe %g", 
+        ":AWGN:STATe?", ":AWGN:STATe %g",
         """ A bootlean property to enable/disable AWGN. """,
         validator=strict_discrete_set,
         values={True: 1, False: 0},
@@ -85,7 +87,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     }
 
     custom_modulation_enable = Instrument.control(
-        "SOURce1:BB:ARBitrary:STATe?", "SOURce1:BB:ARBitrary:STATe %d", 
+        "SOURce1:BB:ARBitrary:STATe?", "SOURce1:BB:ARBitrary:STATe %d",
         """ A boolean property that activates the standard and deactivates
         all the other digital standards and digital modulation modes in the same path.
         You have to selecta an waveform first.
@@ -127,11 +129,14 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         return [v.split(",")[0] for v in m]
 
     def data_load(self, bitsequences, spacings):
-        """ Load data into signal generator for transmission, the parameters are:
-        bitsequences: list of items. Each item is a string of '1' or '0' in transmission order
-        spacings: integer list, gap to be inserted between each bitsequence  expressed in number of bit
+        """ Load data into signal generator for transmission
+
+        :param bitsequences: list of items. Each item is a string of '1' or '0'
+                              in transmission order
+        :param spacings: integer list, gap to be inserted between each
+                         bitsequence expressed in number of bit
         """
-        
+
         raise NotImplementedError("Method not implemented")
 
     def enable_modulation(self):
@@ -150,7 +155,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         playlist = self.ask(":BB:ARBitrary:WSEG:SEQ:SEL?").strip() != '""'
         if (mode is None):
             mode = 'AAUT' if playlist else 'SINGLE'
-            
+
         self.write(f":BB:ARBitrary:TRIGger:SEQ {mode:s}")
         if mode == 'AAUT' and playlist:
             self.write(":BB:ARB:TRIG:SMOD SEQ")
@@ -172,6 +177,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     def _get_markerdata(self, markers_list):
         # Markers are integer from 1 to 4
         data = []
+        value_byte = 0
         for i, markers in enumerate(markers_list):
             # Remove duplicates
             markers = list(set(markers))
@@ -204,8 +210,8 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
                     waveform_tag,
                     ]
         if markers is not None:
-            tag_list.append(CLWTag(self._get_markerdata(markers)))
-        
+            tag_list.append(CLW4Tag(self._get_markerdata(markers)))
+
         RSGenerator(tag_list).generate(stream)
         stream.seek(0)
         self.write_binary_values(f'BB:ARB:WAV:DATA "{name}",',
@@ -232,10 +238,10 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
 
         # Set sampling rate, if defined
         if sampling_rate is not None:
-            self.write(f'BB:ARB:WSEG:CONF:CLOC:MODE USER')
+            self.write('BB:ARB:WSEG:CONF:CLOC:MODE USER')
             self.write(f'BB:ARB:WSEG:CONF:CLOC {sampling_rate:d}Hz')
         else:
-            self.write(f'BB:ARB:WSEG:CONF:CLOC:MODE UNCHanged')
+            self.write('BB:ARB:WSEG:CONF:CLOC:MODE UNCHanged')
         self.write('BB:ARB:WSEG:CONF:LEV:MODE UNCHanged')
 
         # Process list and identify sequences repetitions
@@ -243,8 +249,8 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         # Identify unique segments
         unique_segments = list(set([item[0] for item in segment_list]))
         # Create a convenience dictionary
-        unique_segments_idx = {v:i for (i,v) in enumerate(unique_segments)}
-        
+        unique_segments_idx = {v: i for (i, v) in enumerate(unique_segments)}
+
         for seg_name in unique_segments:
             self.write(f"BB:ARB:WSEG:CONF:SEGM:APP '{seg_name:s}'")
 
@@ -260,7 +266,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
             next_p = 'BLANK' if last else 'NEXT'
             idx = unique_segments_idx[seg_name]
             self.write(f'BB:ARB:WSEG:SEQ:APP ON,{idx:d},{rep:d},{next_p:s}')
- 
+
         # Select waveform
         self.complete
         self.write(f"BB:ARB:WAV:SEL '{seq_file:s}'")
