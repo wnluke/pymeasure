@@ -22,12 +22,15 @@
 # THE SOFTWARE.
 #
 import logging
+
 import os
+
 from functools import partial
 from inspect import signature
 from collections import ChainMap
 
 from ..Qt import QtCore, QtWidgets, QtGui
+
 from ...experiment.sequencer import Sequencer, SequenceEvaluationError
 
 log = logging.getLogger(__name__)
@@ -41,6 +44,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         :param data: data associated with the model
         :param parent: A QWidget that QT will give ownership of this Widget to.
     """
+
 
     def __init__(self, header=("Level", "Parameter", "Sequence"), sequencer=None, parent=None):
         """ TreeModel constructor
@@ -256,6 +260,7 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
         editor = QtWidgets.QLineEdit(parent)
         if self.preview:
             editor.setReadOnly(True)
+            
         editor.setValidator(ExpressionValidator())
         return editor
 
@@ -555,7 +560,6 @@ class SequencerWidget(QtWidgets.QWidget):
 
         finally:
             self.queue_button.setEnabled(True)
-
     def save_sequence(self):
         dialog = SequenceDialog(save=True)
         if dialog.exec():
