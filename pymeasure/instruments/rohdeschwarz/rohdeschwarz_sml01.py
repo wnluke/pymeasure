@@ -24,6 +24,7 @@
 
 from pymeasure.instruments.rf_signal_generator import RFSignalGenerator
 
+
 class RS_SML01(RFSignalGenerator):
     """ Class representing R&S SML01 RF signal generator """
 
