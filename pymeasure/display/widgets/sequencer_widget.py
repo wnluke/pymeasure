@@ -35,7 +35,11 @@ log.addHandler(logging.NullHandler())
 
 
 class SequencerTreeModel(QtCore.QAbstractItemModel):
-    """ TODO: Documentation
+    """ Model for sequencer data
+
+        :param header: List of string representing header data
+        :param data: data associated with the model
+        :param parent: A QWidget that QT will give ownership of this Widget to.
     """
 
     def __init__(self, header=("Level", "Parameter", "Sequence"), data=None, parent=None):
@@ -67,6 +71,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
 
     def remove_node(self, index):
         """ Remove a row in the sequencer """
+        
         children = self.rowCount(index)
         seq_item = index.internalPointer()
         # Remove children from last to first
@@ -82,8 +87,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         return self.createIndex(parent_row, 0, parent_seq_item)
 
     def flags(self, index):
-        """ QAbstractItemModel override method that is used to set the flags
-            for the item at the given QModelIndex.
+        """ Set the flags for the item at the given QModelIndex.
 
             Here, we just set all indexes to enabled, and selectable.
         """
