@@ -252,4 +252,3 @@ class VISAAdapter(Adapter):
 
     def __repr__(self):
         return "<VISAAdapter(resource='%s')>" % self.connection.resource_name
-
