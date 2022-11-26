@@ -261,11 +261,11 @@ class Sequencer():
         return child
 
     def get_children_order(self, seq_item):
-        """ Return the children of order of the node identified by seq_item
+        """ Return the children order of the node identified by seq_item
 
         The children order is the index related to the parent's children list.
 
-        Provide example here: TODO
+        :param seq_item: SequenceItem instance or None
         """
 
         if seq_item is None:
@@ -415,4 +415,5 @@ class Sequencer():
         for idx in range(len(sequences)):
             if not isinstance(sequences[idx], tuple):
                 sequences[idx] = (sequences[idx],)
-        return sequences
+        return sequence
+        
