@@ -130,12 +130,12 @@ class Sequencer():
         'tanh': numpy.tanh,
     }
 
-    def __init__(self, file_object=None):
-        self.file_object = file_object
+    def __init__(self, filename=''):
         self._sequences = []
         self.parent = {}
-        if self.file_object is not None:
-            self.parse()
+        if filename:
+            with open(filename, 'r') as f:
+                self.parse(f)
 
     @staticmethod
     def eval_string(string, name=None, depth=None, log_enabled=True):
@@ -298,7 +298,7 @@ class Sequencer():
     def __getitem__(self, key):
         return self.sequences[key]
 
-    def parse(self):
+    def parse(self, file_object):
         """
         Read and parse a sequence file.
 
@@ -306,8 +306,8 @@ class Sequencer():
         current_parent = None
 
         pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
-        self.file_object.seek(0)
-        for line in self.file_object:
+        file_object.seek(0)
+        for line in file_object:
             line = line.strip()
             match = pattern.search(line)
 
@@ -343,9 +343,9 @@ class Sequencer():
 
     def save(self, filename=None):
         """ Save modified sequence to file """
-        with open(filename, 'w') as file:
+        with open(filename, 'w') as f:
             for item in self.sequences:
-                file.write(str(item) + "\n")
+                f.write(str(item) + "\n")
 
     def parameters_sequence(self, names_map=None):
         """

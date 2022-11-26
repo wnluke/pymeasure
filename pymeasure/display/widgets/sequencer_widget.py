@@ -38,19 +38,20 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
     """ TODO: Documentation
     """
 
-    def __init__(self, header=("Level", "Parameter", "Sequence"), data=None, parent=None):
+    def __init__(self, header=("Level", "Parameter", "Sequence"), sequencer=None, parent=None):
         """ TreeModel constructor
         :param header: The header to use
         :type header: Iterable
+        :param data: Sequencer instance. If None, empty Sequencer() is used.
         :param parent: A QWidget that QT will give ownership of this Widget too.
         """
         super().__init__(parent)
 
         self.header = header
-        if data is None:
+        if sequencer is None:
             self.root = Sequencer()
         else:
-            self.root = data
+            self.root = sequencer
 
     def add_node(self, parameter, parent=None):
         """ Add a row in the sequencer """
@@ -268,14 +269,15 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
 
 class SequencerTreeView(QtWidgets.QTreeView):
 
-    def __init__(self, inputs=None, parameter_objects=None, tree_model=None, preview=False,
+    def __init__(self, inputs=None, parameter_objects=None, preview=False,
                  parent=None):
         super().__init__(parent)
         self._parent = parent
         self.preview = preview
         self.parameter_objects = parameter_objects
         self._inputs = inputs
-        self.setModel(tree_model)
+        self.tree_model = SequencerTreeModel()
+        self.setModel(self.tree_model)
         self._get_properties()
         self._setup_ui()
 
@@ -318,7 +320,7 @@ class SequencerTreeView(QtWidgets.QTreeView):
     def add_tree_item(self, *, level=None, parameter=None):
         """
         Add an item to the sequence tree. An item will be added as a child
-        to the selected (existing) item, except when level is given.
+        to the selected item, except when level is given.
 
         :param level: An integer value determining the level at which an
             item is added. If level is 0, a root item will be added.
@@ -361,17 +363,17 @@ class SequencerTreeView(QtWidgets.QTreeView):
     def get_sequence(self):
         return self.data.parameters_sequence(self.names_inv)
 
-    def load_sequence(self, *, filename=None, preview=False):
+    def load_sequence(self, *, filename=None):
         """
         Load a sequence from a .txt file.
-        :param fileName: Filename (string) of the to-be-loaded file.
+        :param filename: Path to the file to be loaded.
         """
 
         if len(filename) == 0:
             return
 
-        self.data = Sequencer(open(filename, "r"))
-        self.tree_model = SequencerTreeModel(data=self.data)
+        self.data = Sequencer(filename)
+        self.tree_model = SequencerTreeModel(sequencer=self.data)
         self.setModel(self.tree_model)
         self.expandAll()
 
@@ -424,8 +426,7 @@ class SequenceDialog(QtWidgets.QFileDialog):
 
     def update_preview(self, filename):
         if not os.path.isdir(filename) and filename != '':
-            # self.preview_param.clear()
-            self.preview_param.load_sequence(filename=filename, preview=True)
+            self.preview_param.load_sequence(filename=filename)
 
 
 class SequencerWidget(QtWidgets.QWidget):
@@ -478,7 +479,6 @@ class SequencerWidget(QtWidgets.QWidget):
     def _setup_ui(self):
         self.tree = SequencerTreeView(inputs=self._inputs,
                                       parameter_objects=self.parameter_objects,
-                                      tree_model=SequencerTreeModel(),
                                       parent=self)
 
         self.load_seq_button = QtWidgets.QPushButton("Load sequence")
