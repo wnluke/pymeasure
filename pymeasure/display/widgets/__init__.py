@@ -32,6 +32,6 @@ from .log_widget import LogWidget
 from .plot_frame import PlotFrame
 from .plot_widget import PlotWidget
 from .results_dialog import ResultsDialog
-from .sequencer_widget import SequencerWidget, SequenceEvaluationException
+from .sequencer_widget import SequencerWidget
 from .tab_widget import TabWidget
 from .table_widget import TableWidget
