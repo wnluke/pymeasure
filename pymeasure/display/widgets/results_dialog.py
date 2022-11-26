@@ -105,23 +105,24 @@ class ResultsDialog(QtWidgets.QFileDialog):
 
             curve = {}
             for column in self.columns:
-                curve[column] = ResultsCurve(results,
-                                             x=self.plot_widget.plot_frame.x_axis,
-                                             y=column,
-                                             # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
-                                             # circumvent plotting slowdown. Once the issue
-                                             # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
-                                             # it can be reverted
-                                             pen=pg.mkPen(color=(255, 0, 0), width=1),
-                                             antialias=True
-                                         )
+                curve[column] = \
+                    ResultsCurve(results,
+                                 x=self.plot_widget.plot_frame.x_axis,
+                                 y=column,
+                                 # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
+                                 # circumvent plotting slowdown. Once the issue
+                                 # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
+                                 # it can be reverted
+                                 pen=pg.mkPen(color=(255, 0, 0), width=1),
+                                 antialias=True
+                                 )
                 curve[column].update_data()
 
             for i_curve in curve.values():
                 checked = self.plot_widget.columns_y.checked_items()
                 self.plot.addItem(i_curve)
                 i_curve.update_data()
-                if not i_curve.y in checked:
+                if i_curve.y not in checked:
                     i_curve.hide()
                     i_curve.update_data()
 
