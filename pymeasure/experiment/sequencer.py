@@ -415,5 +415,5 @@ class Sequencer():
         for idx in range(len(sequences)):
             if not isinstance(sequences[idx], tuple):
                 sequences[idx] = (sequences[idx],)
-        return sequence
+        return sequences
         

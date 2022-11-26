@@ -46,7 +46,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         """ TreeModel constructor
         :param header: The header to use
         :type header: Iterable
-        :param data: Sequencer instance. If None, empty Sequencer() is used.
+        :param sequencer: Sequencer instance. If None, empty Sequencer() is used.
         :param parent: A QWidget that QT will give ownership of this Widget too.
         """
         super().__init__(parent)
