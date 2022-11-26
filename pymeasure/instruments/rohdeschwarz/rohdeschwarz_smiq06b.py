@@ -104,7 +104,8 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     custom_modulation_ask_depth = Instrument.control(
         ":DM:ASK:DEPTh?",
         ":DM:ASK:DEPTh %e",
-        """ An integer property that allow to set/read the depth for the amplitude shift keying (ASK) modulation.
+        """ An integer property that allow to set/read the depth for the
+        amplitude shift keying (ASK) modulation.
         Depth is set as a percentage of the full power on level.
         """,
         validator=strict_range,

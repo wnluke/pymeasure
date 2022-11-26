@@ -63,7 +63,7 @@ class GenericTag(object):
             except ValueError:
                 if isinstance(value, bytes):
                     if re.match(br"[\w ]+", value):
-                        return_value = (value.decode(), "s")
+                        return_value = (value.decode('latin1'), "s")
 
         return return_value
 
@@ -84,11 +84,8 @@ class GenericTag(object):
         else:
             value = getattr(self, field)
         if max_size:
-            try:
-                if (len(value) > max_size):
-                    value = str(value[:(max_size - 3)]) + "..."
-            except:
-                pass
+            if (len(value) > max_size):
+                value = str(value[:(max_size - 3)]) + "..."
 
         return value
 
@@ -188,8 +185,8 @@ class WaveformTag(BinaryTag):
         """ Specific match method for waveform tags """
 
         m, content = super(WaveformTag, cls).match(content)
-        if m and (content['extra_chars'] is None):
-            content['extra_chars'] = ""
+        if m and (m['extra_chars'] is None):
+            m['extra_chars'] = ""
         return m, content
 
     def __init__(self, value, name="WAVEFORM", extra_chars=""):
