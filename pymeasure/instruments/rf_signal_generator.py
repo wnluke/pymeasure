@@ -23,24 +23,22 @@
 #
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set, strict_range, joined_validators
-
-# Capitalize string arguments to allow for better conformity with other WFG's
-def capitalize_string(string: str, *args, **kwargs):
-    return string.upper()
-
-# Combine the capitalize function and validator
-string_validator = joined_validators(capitalize_string, strict_discrete_set)
+from pymeasure.instruments.validators import (strict_discrete_set,
+                                              strict_range)
 
 
 class RFSignalGenerator(Instrument):
     """Represents a generic analog RF Signal Generator.
 
-    It provides a high-level interface for interacting with the instrument and all the instrument inherited from
-    this class should have the same base interface plus optionally device specific extensions.
-    The class is not normally intended to be used directly but should be subclassed to implement support for specific instruments.
-    For RF signal generators not yet supported, this class can also be used to provide initial basic functions.
-    Of course, in this case, correctness cannot be guaranteed. Some examples are shown below.
+    It provides a high-level interface for interacting with the instrument and
+    all the instrument inherited from this class should have the same base
+    interface plus optionally device specific extensions.
+    The class is not normally intended to be used directly but should be
+    subclassed to implement support for specific instruments.
+    For RF signal generators not yet supported, this class can also be used to
+    provide initial basic functions.
+    Of course, in this case, correctness cannot be guaranteed. Some examples
+    are shown below.
 
 Instrument intialization example:
 
@@ -57,7 +55,7 @@ Instrument intialization example:
 Generate a tone at 868MHz:
 
 .. code-block:: python
-   
+
     # Read power
     sg.power
     # -50.0
@@ -68,7 +66,7 @@ Generate a tone at 868MHz:
     # enable RF output
     sg.rf_enable = 1
 
-    
+
     """
 
     POWER_RANGE_dBm = (-150.0, 30.0)
@@ -94,9 +92,9 @@ Generate a tone at 868MHz:
         dynamic=True
     )
     rf_enable = Instrument.control(
-        ":OUTPUT?", ":OUTPUT %d", 
-        """ A boolean property that tell if RF output is enabled or not. 
-        This property can be set. """,
+        ":OUTPUT?", ":OUTPUT %d",
+        """ A boolean property that tell if RF output is enabled or not.
+        This property can be set.""",
         cast=int,
         dynamic=True
     )
@@ -107,10 +105,10 @@ Generate a tone at 868MHz:
         This property can be set.
         """,
         validator=strict_discrete_set,
-        values={"ON" : 1,
-                "OFF" : 0},
-        cast = int,
-        map_values = True,
+        values={"ON": 1,
+                "OFF": 0},
+        cast=int,
+        map_values=True,
         dynamic=True
     )
 
@@ -119,31 +117,34 @@ Generate a tone at 868MHz:
             adapter, description, **kwargs
         )
 
-
     def shutdown(self):
         """ Shuts down the instrument by disabling any modulation
         and the output signal.
         """
         self.rf_enable = 0
         super().shutdown()
- 
+
+
 class RFSignalGeneratorDM:
     """ Represent the digital modulation capability of a generic signal generator.
 
-        The digital modulation is the ability to send pattern or user data according to supported modulation.
-        Digital data is represented as string so 1 or 0 in transmission order. For non binary modulation, e.g 4FSK, symbols
-        are represented as couple of bits.
+        The digital modulation is the ability to send pattern or user data
+        according to supported modulation.
+        Digital data is represented as string so 1 or 0 in transmission order.
+        For non binary modulation, e.g 4FSK, symbols are represented as couple of bits.
 
         This class is a mixin.
 
-        This class define a basic interface which should be implemented for each specific instrument.
+        This class define a basic interface which should be implemented for
+        each specific instrument.
 
 An example for data pattern generation
 
-        
+
 .. code-block:: python
 
-    # This example documents the usage of the interface, assuming that is implemented a specific subclass
+    # This example documents the usage of the interface, assuming that is
+    # implemented a specific subclass
     from pymeasure.instruments.agilent.agilentE4438C import AgilentE4438C
 
     sg = AgilentE4438C('GPIB0::18::INSTR')
@@ -179,24 +180,25 @@ Another example for user data loading
     sg.data_trigger()
 
     """
-    
-    MODULATION_TYPES = ('ASK', 'BPSK', 'FSK2', 'FSK4', 'PSK8', 'QAM16', 'QAM256', 'QAM32', 'QAM64', 'QPSK')
+
+    MODULATION_TYPES = ('ASK', 'BPSK', 'FSK2', 'FSK4', 'PSK8',
+                        'QAM16', 'QAM256', 'QAM32', 'QAM64', 'QPSK')
     """ Define some basic digital modulation types """
 
     MODULATION_FILTERS = ('RECT', 'GAUS')
     """ Define basic filters """
 
     MODULATION_DATA = {
-        'Pattern0000' : None,
-        'Pattern1111' : None,
-        'Pattern0101' : None,
-        'PatternPN9' : None,
-        'DATA' : None,
+        'Pattern0000': None,
+        'Pattern1111': None,
+        'Pattern0101': None,
+        'PatternPN9': None,
+        'DATA': None,
     }
-    """ Define modulation data source, ``DATA`` refers to user bit sequences loaded by :meth:`data_load` and :meth:`data_load_repeated` """
+    """ Define modulation data source, ``DATA`` refers to user bit sequences
+        loaded by :meth:`data_load` and :meth:`data_load_repeated` """
 
-
-    custom_modulation_data  = None
+    custom_modulation_data = None
     """ Instrument control or setting to implement setting of the modulation data source """
 
     custom_modulation_enable = None
@@ -221,7 +223,7 @@ Another example for user data loading
     """ ASK depth in percentage """
 
     memory = None
-    """ Memory size for loading user defined patterns """ 
+    """ Memory size for loading user defined patterns """
 
     def data_load_repeated(self, bitsequence, spacing, repetitions):
         """ Load digital data into signal generator for transmission, the parameters are:
@@ -236,27 +238,29 @@ Another example for user data loading
         """ Load data into signal generator for transmission.
 
         :param bitsequences: items list. Each item is a string of '1' or '0' in transmission order
-        :param spacings: integer list, gap to be inserted between each bitsequence  expressed in number of bit
+        :param spacings: integer list, gap to be inserted between each
+                         bitsequence  expressed in number of bit
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def data_trigger_setup(self, mode='SINGLE'):
         """ Configure the trigger system for bitsequence transmission
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def data_trigger(self):
         """ Trigger a bitsequence transmission
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def set_fsk_constellation(self, constellation, fdev):
-        """ For multi level FSK modulation, allow to define the constellation mapping.
+        """ Define constellation map
 
-        :param constellation: a dictonary which maps to fdev dividers, for an hypothetical 4-FSK example see below.
+        :param constellation: a dictonary which maps to fdev dividers, for an
+                              hypothetical 4-FSK example see below.
 
         :param fdev: Outer frequency deviation
 
@@ -270,10 +274,10 @@ Another example for user data loading
             2:  -1, # Symbol 10 -> -fdev
             3:  -3, # Symbol 11 -> -fdev/3
         }
-        
+
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
 
 class RFSignalGeneratorIQ:
@@ -281,15 +285,17 @@ class RFSignalGeneratorIQ:
 
         The IQ modulation to create modulation signal by providing IQ sequences.
 
-        This class define a basic interface which should be implemented for each specific instrument.
+        This class define a basic interface which should be implemented for
+         each specific instrument.
         This class is a mixin
 
 An example for data pattern generation
 
-        
+
 .. code-block:: python
 
-    # This example documents the usage of the interface, assuming that is implemented a specific subclass
+    # This example documents the usage of the interface, assuming that is
+    # implemented a specific subclass
     # TBD
 
 
@@ -302,10 +308,9 @@ Another example for user data loading
     # TBD
 
     """
-    
 
     memory = None
-    """ Memory size for loading user defined patterns """ 
+    """ Memory size for loading user defined patterns """
 
     def _process_iq_sequence(self, sequence):
         """ Identify repetition in sequence and return processed list
@@ -355,32 +360,33 @@ Another example for user data loading
         """
 
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def data_iq_sequence_load(self, iqdata_sequence):
         """ Load IQ sequence into signal generator
 
-        :param iqdata_sequence: list of names representing valid data loaded with :meth:`data_iq_load`
+        :param iqdata_sequence: list of names representing valid data loaded
+                                with :meth:`data_iq_load`
         """
-        raise Exception ("Not supported/implemented")
-
+        raise Exception("Not supported/implemented")
 
     def data_trigger_setup(self, mode='SINGLE'):
         """ Configure the trigger system for bitsequence transmission
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def data_trigger(self):
         """ Trigger a bitsequence transmission
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")
 
     def set_fsk_constellation(self, constellation, fdev):
         """ For multi level FSK modulation, allow to define the constellation mapping.
 
-        :param constellation: a dictonary which maps to fdev dividers, for an hypothetical 4-FSK example see below.
+        :param constellation: a dictonary which maps to fdev dividers, for an
+                hypothetical 4-FSK example see below.
 
         :param fdev: Outer frequency deviation
 
@@ -394,7 +400,7 @@ Another example for user data loading
             2:  -1, # Symbol 10 -> -fdev
             3:  -3, # Symbol 11 -> -fdev/3
         }
-        
+
         """
         # Subclasses should implement this
-        raise Exception ("Not supported/implemented")
+        raise Exception("Not supported/implemented")

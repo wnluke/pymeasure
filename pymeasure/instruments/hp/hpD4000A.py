@@ -23,6 +23,8 @@
 #
 
 from pymeasure.instruments.rf_signal_generator import RFSignalGenerator
+
+
 class HPD4000A(RFSignalGenerator):
     """ Class representing "HP D4000A/Agilent E4433A RF signal generator """
 
@@ -31,6 +33,7 @@ class HPD4000A(RFSignalGenerator):
     frequency_values = (250e3, 4e9)
 
     name = "HP D4000A Signal Generator"
+
     def __init__(self, resourceName, **kwargs):
         super().__init__(
             resourceName,
@@ -46,4 +49,3 @@ class HPD4000A(RFSignalGenerator):
         # The second entry should be model
         return_value[1], return_value[2] = return_value[2], return_value[1]
         return ",".join(return_value)
-

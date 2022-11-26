@@ -24,16 +24,17 @@
 
 from pymeasure.instruments.rf_signal_generator import RFSignalGenerator
 
+
 class RS_SMA100A(RFSignalGenerator):
     """ Class representing R&S SMA100A RF signal generator """
 
     # Define instrument limits according to datasheet
     power_values = (-147.0, 18.0)
     frequency_values = (9e3, 6e9)
+
     def __init__(self, resourceName, **kwargs):
         super().__init__(
             resourceName,
             "Rohde & Schwarz SMA100A Signal Generator",
             **kwargs
         )
-
