@@ -416,4 +416,3 @@ class Sequencer():
             if not isinstance(sequences[idx], tuple):
                 sequences[idx] = (sequences[idx],)
         return sequences
-        
