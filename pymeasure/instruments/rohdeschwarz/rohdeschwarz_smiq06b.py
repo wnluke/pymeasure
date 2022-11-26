@@ -22,12 +22,16 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments.rf_signal_generator import RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ
-from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set, strict_range
-import struct
-from .rs_waveform import RSGenerator, WaveformTag, TypeTag, CLW4Tag, IntegerTag
 from io import BytesIO
+
+from pymeasure.instruments.rf_signal_generator import (RFSignalGenerator,
+                                                       RFSignalGeneratorDM,
+                                                       RFSignalGeneratorIQ)
+from pymeasure.instruments import Instrument
+from pymeasure.instruments.validators import (strict_discrete_set,
+                                              strict_range)
+from .rs_waveform import RSGenerator, WaveformTag, TypeTag, IntegerTag
+
 
 class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     # Define instrument limits according to datasheet
@@ -43,11 +47,11 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     # 3.5.14.5 SOURce:DM (Digital Modulation) Subsystem ([:SOURce]:DM)
     ####################################################################
     CUSTOM_MODULATION_DATA = {
-        'Pattern0101' : "PATT;PATT ALT",
-        'Pattern0000' : "PATT;PATT ZERO",
-        'Pattern1111' : "PATT;PATT ONE",
-        'PatternPN9' :  "PRBS;PRBS 9",
-        'DATA' : "DLIST",
+        'Pattern0101': "PATT;PATT ALT",
+        'Pattern0000': "PATT;PATT ZERO",
+        'Pattern1111': "PATT;PATT ONE",
+        'PatternPN9':  "PRBS;PRBS 9",
+        'DATA': "DLIST",
     }
 
     CUSTOM_MODULATION_ENABLE_MAP = {
@@ -56,8 +60,8 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     }
 
     custom_modulation_enable = Instrument.control(
-        ":DM:STATE?", ":DM:STATE %s", 
-        """ A boolean property that enables or disables the Custom modulation. 
+        ":DM:STATE?", ":DM:STATE %s",
+        """ A boolean property that enables or disables the Custom modulation.
         This property can be set. """,
         validator=strict_discrete_set,
         values=CUSTOM_MODULATION_ENABLE_MAP,
@@ -65,15 +69,16 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     )
 
     custom_modulation = Instrument.control(
-        ":DM:FORMat?", ":DM:FORMat %s", 
-        """ A string property that allow to selects the modulation. QWCDma is only available with option SMIQB47.
+        ":DM:FORMat?", ":DM:FORMat %s",
+        """ A string property that allow to selects the modulation.
+        QWCDma is only available with option SMIQB47.
         """,
         validator=strict_discrete_set,
         values=RFSignalGeneratorDM.MODULATION_TYPES
     )
 
     custom_modulation_filter = Instrument.setting(
-        ":DM:FILTer:TYPE %s", 
+        ":DM:FILTer:TYPE %s",
         """ A string property that allow to set the type of filter.
         """,
         validator=strict_discrete_set,
@@ -81,33 +86,35 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     )
 
     custom_modulation_bbt = Instrument.setting(
-        ":DM:FILTer:PARameter %f", 
+        ":DM:FILTer:PARameter %f",
         """ A  property that allow to set filter parameter (Roff Off or BxT rate).
         """,
         validator=strict_range,
-        values=[0.1,1.0]
+        values=[0.1, 1.0]
     )
 
     custom_modulation_symbol_rate = Instrument.setting(
-        ":DM:SRATe %e", 
+        ":DM:SRATe %e",
         """ A integer property that allow to set the transmission symbol rate
         This property can be set. """,
         validator=strict_range,
         values=[100, 7e6]
     )
 
-    custom_modulation_ask_depth = Instrument.setting(
-        ":DM:ASK:DEPTh %e", 
-        """ An integer property that allow to set the depth for the amplitude shift keying (ASK) modulation.
+    custom_modulation_ask_depth = Instrument.control(
+        ":DM:ASK:DEPTh?",
+        ":DM:ASK:DEPTh %e",
+        """ An integer property that allow to set/read the depth for the amplitude shift keying (ASK) modulation.
         Depth is set as a percentage of the full power on level.
         """,
         validator=strict_range,
         values=[0, 100]
     )
 
-    custom_modulation_fsk_deviation = Instrument.setting(
-        ":DM:FSK:DEViation %e", 
-        """ An integer property that allow to set the FSK frequency deviation value.
+    custom_modulation_fsk_deviation = Instrument.control(
+        ":DM:FSK:DEViation?",
+        ":DM:FSK:DEViation %e",
+        """ An integer property that allow to set/read the FSK frequency deviation value.
         Unit is Hz.
         """,
         validator=strict_range,
@@ -115,7 +122,7 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
     )
 
     custom_modulation_data = Instrument.setting(
-        ":DM:SOURce %s", 
+        ":DM:SOURce %s",
         """ A string property that allow to set the data source.
         """,
         validator=strict_discrete_set,
@@ -141,6 +148,7 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         if len(markers_list):
             item_list = isinstance(markers_list[0], (list, tuple))
         data = []
+        value_byte = 0
         for i, markers in enumerate(markers_list):
             if item_list:
                 # Remove duplicates
@@ -177,15 +185,15 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
                     IntegerTag(name="CLOCK", value=sampling_rate),
                     WaveformTag(value=self._get_iqdata(iqdata), extra_chars="0,")]
         if markers is not None:
-            mkrs = self._get_markerdata(markers)
+            # mkrs = self._get_markerdata(markers)
             raise NotImplementedError("Markers not implemented")
-        
+
         RSGenerator(tag_list).generate(stream)
         stream.seek(0)
         self.write_binary_values(f':ARB:WAV:DATA "{name}",',
                                  stream.read(),
                                  datatype='B')
-        self.write(f':ARB:CLOC:SOUR INT')
+        self.write(':ARB:CLOC:SOUR INT')
         self.write(f':ARB:CLOC {sampling_rate:d}Hz')
         # Select waveform
         self.write(f":ARB:WAV:SEL '{name:s}'")
@@ -201,13 +209,14 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         elif modulation == "USER":
             symbol_length = int(float(self.ask("DM:MLIST:DATA?").split(",")[1]))
         return symbol_length
-            
+
     def data_load(self, bitsequences, spacings):
         """ Load data into signal generator for transmission, the parameters are:
         bitsequences: list of items. Each item is a string of '1' or '0' in transmission order
-        spacings: integer list, gap to be inserted between each bitsequence  expressed in number of bit
+        spacings: integer list, gap to be inserted between each bitsequence
+                  expressed in number of bit
         """
-        
+
         # Switch line terminator to EOI to send data in packed format
         self.write(":SYST:COMM:GPIB:LTER EOI")
         # Select data list
@@ -249,17 +258,18 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         self.complete
 
         # Write control list
-        # The control list is used to switch on the RF during sequence transmission and switch it off
-        # during spacing
+        # The control list is used to switch on the RF during sequence transmission and
+        # switch it off during spacing
         self.write("SOURce:DM:CLISt:DELete 'datactrl'")
         self.write("SOURce:DM:CLISt:SELect 'datactrl'")
         self.complete
 
         values = []
-        index_mask = (1 << 26) - 1 # 26 bits
-        for i,v in enumerate(ctrls):
-            # Switch on the power at the beginning of each sequence and switch it off at end of the sequences
-            values.append( (((i+1)%2) << 31) + (v & index_mask))
+        index_mask = (1 << 26) - 1  # 26 bits
+        for i, v in enumerate(ctrls):
+            # Switch on the power at the beginning of each sequence and switch it off
+            # at end of the sequences
+            values.append((((i + 1) % 2) << 31) + (v & index_mask))
         self.write_binary_values("SOURce:DM:CLISt:DATA ", values,
                                  timeout=20000, datatype="I",
                                  is_big_endian=True)
@@ -288,7 +298,7 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         """ Configure the trigger system for bitsequence transmission
         """
         self.write(":SOUR:DM:TRIGger:SOURce INT")
-        self.write(":SOUR:DM:SEQ %s"%mode)
+        self.write(f":SOUR:DM:SEQ {mode}")
 
     def data_trigger(self):
         """ Trigger a bitsequence transmission
@@ -312,8 +322,10 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         self.write(":SOUR:DM:MLIS:DATA {}".format(cmd_params))
         self.write(":DM:FORMat USER")
 
+
 class RS_SMIQ03B(RS_SMIQ0xB):
     frequency_values = (300e3, 3.3e9)
+
     def __init__(self, resourceName, **kwargs):
         super().__init__(
             resourceName,
@@ -321,8 +333,10 @@ class RS_SMIQ03B(RS_SMIQ0xB):
             **kwargs
         )
 
+
 class RS_SMIQ06B(RS_SMIQ0xB):
     frequency_values = (300e3, 6.4e9)
+
     def __init__(self, resourceName, **kwargs):
         super().__init__(
             resourceName,
