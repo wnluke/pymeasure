@@ -24,6 +24,7 @@
 
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
 
+
 def anritsu_get_trace_mode(mode):
     mode_map = {
         'WRIT;OFF': 'WRIT',
@@ -43,35 +44,36 @@ def anritsu_get_trace_mode(mode):
         'VIEW;LAV': 'VIEW',
     }
     return mode_map[mode]
-    
+
+
 def anritsu_set_trace_mode(mode):
     mode_map = {
-    'WRITE': "WRITE;:TRACe:STORAGE:MODE OFF",
-    'BLANK': "BLANK",
-    'VIEW': "VIEW",
-    'MAXHOLD': "WRITE;:TRACe:STORAGE:MODE MAXHOLD",
-    'MINHOLD': "WRITE;:TRACe:STORAGE:MODE MINHOLD",
+        'WRITE': "WRITE;:TRACe:STORAGE:MODE OFF",
+        'BLANK': "BLANK",
+        'VIEW': "VIEW",
+        'MAXHOLD': "WRITE;:TRACe:STORAGE:MODE MAXHOLD",
+        'MINHOLD': "WRITE;:TRACe:STORAGE:MODE MINHOLD",
     }
     return mode_map[mode]
-    
+
 
 class AnritsuMS2830A(SpectrumAnalyzer):
     """ This class represent an Anritsu MS2830A Spectrum Analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-130, 50)
     reference_level_set_command = ":DISPlay:WINDow:TRACe:Y:RLEVel %e ;"
-    
+
     resolution_bw_values = (1, 3e6)
     resolution_bw_set_command = ":SENSe:BANDwidth %d ;"
-    
+
     input_attenuation_values = (0, 60)
 
     frequency_span_values = (0, 13.7e9)
     frequency_span_set_command = ":SENS:FREQ:SPAN %d ;"
 
     frequency_step_set_command = ":SENS:FREQ:CENT:STEP:INCR %g;"
-    
+
     start_frequency_set_command = ":SENS:FREQ:STAR %e ;"
 
     stop_frequency_set_command = ":SENS:FREQ:STOP %e ;"
@@ -89,13 +91,12 @@ class AnritsuMS2830A(SpectrumAnalyzer):
 
     average_type_get_command = ":TRACE:STORAGE:MODE?"
     average_type_set_command = ":TRACE:STORAGE:MODE %s;"
-    average_type_values = {"POWER" : "AVER",
-                           "VOLTAGE" : "LAV",
+    average_type_values = {"POWER": "AVER",
+                           "VOLTAGE": "LAV",
                            "_MAXHOLD": "MAXH",
                            "_MINHOLD": "MINH",
                            "OFF": "OFF",
-                           
-            }
+                           }
 
     def __init__(self, resourceName, **kwargs):
         super().__init__(

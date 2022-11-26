@@ -24,10 +24,11 @@
 
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
 
+
 class AgilentE4440A(SpectrumAnalyzer):
     """ This class represent an Agilent E4440A Spectrum Analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-170, 30)
 
     frequency_span_values = (10, 26.5e9)

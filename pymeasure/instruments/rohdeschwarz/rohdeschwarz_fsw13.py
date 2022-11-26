@@ -23,19 +23,19 @@
 #
 
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set
+
 
 class RS_FSW13(SpectrumAnalyzer):
     """ Rohde&Schwarz FSW13 spectrum analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-40, 27)
 
     frequency_span_values = (0, 13.6e9)
 
     resolution_bw_values = (10, 10e6)
 
-    input_attenuation_values = (0, 70) # This limit is not clear in the datasheet
+    input_attenuation_values = (0, 70)  # This limit is not clear in the datasheet
 
     frequency_points_values = (101, 100001)
 
@@ -48,9 +48,9 @@ class RS_FSW13(SpectrumAnalyzer):
     input_attenuation_set_command = ":INPut:ATTenuation %d;"
 
     average_type_values = {
-        "POWER" : "POW",
-        "VOLTAGE" : "LIN",
-        "VIDEO" : "VID"
+        "POWER": "POW",
+        "VOLTAGE": "LIN",
+        "VIDEO": "VID"
     }
 
     def __init__(self, resourceName, **kwargs):

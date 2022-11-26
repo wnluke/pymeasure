@@ -23,21 +23,22 @@
 #
 
 from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set
+
 
 class RS_FSIQ3(SpectrumAnalyzer):
     """ Rohde&Schwarz FSIQ3 spectrum analyzer """
 
-    # Customize parameters with values taken from datasheet/user manual 
+    # Customize parameters with values taken from datasheet/user manual
     reference_level_values = (-200, 200)
 
     frequency_span_values = (0, 3e9)
 
     resolution_bw_values = (10, 10e6)
 
-    input_attenuation_values = (0, 70) # This limit is not clear in the datasheet
+    input_attenuation_values = (0, 70)  # This limit is not clear in the datasheet
 
-    frequency_points_values = (500, 500) # TODO: The command to get the sweep points is not available
+    # TODO: The command to get the sweep points is not available
+    frequency_points_values = (500, 500)
 
     detector_values = ("APE", "NEG", "POS", "SAMP", "RMS", "AVER")
 
@@ -47,13 +48,13 @@ class RS_FSIQ3(SpectrumAnalyzer):
     input_attenuation_get_command = ":INPut:ATTenuation?;"
     input_attenuation_set_command = ":INPut:ATTenuation %d;"
 
-    average_type_values={
-        "MAX" : "MAX",
-        "VOLTAGE" : "SCAL",
-        "MIN" : "MIN"
+    average_type_values = {
+        "MAX": "MAX",
+        "VOLTAGE": "SCAL",
+        "MIN": "MIN",
     }
 
-    sweep_type = None # Not supported
+    sweep_type = None  # Not supported
 
     def __init__(self, resourceName, **kwargs):
         super().__init__(

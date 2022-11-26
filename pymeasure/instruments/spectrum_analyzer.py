@@ -31,11 +31,16 @@ import pandas as pd
 
 
 class SpectrumAnalyzer(Instrument):
-    """ Represents a generic SCPI Spectrum Analyzer and provides a high-level interface for controlling basic instrument parameters and caputring traces.
+    """ Represents a generic SCPI Spectrum Analyzer
+
+    It provides a high-level interface for controlling basic instrument
+    parameters and capturing traces.
 
     The interface is intentionally simple in order to be adapted to wide range
     of spectrum analyzers.
-    This class is normally subclassed to implement specific instruments. Other use case include the basic management of spectrum analyzer not yet implemented.
+    This class is normally subclassed to implement specific instruments.
+    Other use case include the basic management of spectrum analyzer not yet
+    implemented.
 
 Example of initialization
 
@@ -61,7 +66,7 @@ Single sweep acquisition and peak value calculation
     sa.frequency_span = 100e6
     sa.sweep_mode_continuous = "OFF"
     sa.trace_mode = "WRITE"
-    
+
     # Make a single sweep
     sa.sweep_single()
 
@@ -79,8 +84,9 @@ Single sweep acquisition and peak value calculation
 
     reference_level = Instrument.control(
         ":DISPlay:WINDow:TRACe:Y:RLEVel?;", ":DISPlay:WINDow:TRACe:Y:RLEVel %e dBm;",
-        """ A floating point property that represents the absolute amplitude of the top graticule line on the display (the
-        reference level) in dBm. This property can be set.
+        """ A floating point property that represents the absolute amplitude
+        of the top graticule line on the display (the reference level) in dBm.
+        This property can be set.
         """,
         validator=truncated_range,
         values=(-170, 30),
@@ -180,14 +186,15 @@ Single sweep acquisition and peak value calculation
 
     sweep_mode_continuous = Instrument.control(
         ":INITiate:CONTinuous?;", ":INITiate:CONTinuous %s;",
-        """ A boolean property that allows you to switches the analyzer between continuous-sweep and single-sweep mode.
+        """ A boolean property that allows you to switches the analyzer between
+        continuous-sweep and single-sweep mode.
         This property can be set.
         """,
         validator=strict_discrete_set,
-        values={"ON" : 1,
-                "OFF" : 0},
-        cast = int,
-        map_values = True,
+        values={"ON": 1,
+                "OFF": 0},
+        cast=int,
+        map_values=True,
         dynamic=True
     )
 
@@ -200,7 +207,7 @@ Single sweep acquisition and peak value calculation
         validator=strict_discrete_set,
         values=("WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"),
         cast=str,
-        dynamic=True        
+        dynamic=True
     )
 
     average_type = Instrument.control(
@@ -212,11 +219,11 @@ Single sweep acquisition and peak value calculation
         - "VIDEO": Sets Log-Power (video) averaging
         """,
         validator=strict_discrete_set,
-        values={"POWER" : "RMS",
-                "VOLTAGE" : "SCAL",
-                "VIDEO" : "LOG"
-            },
-        map_values = True,
+        values={"POWER": "RMS",
+                "VOLTAGE": "SCAL",
+                "VIDEO": "LOG"
+                },
+        map_values=True,
         dynamic=True
     )
 
@@ -241,11 +248,11 @@ Single sweep acquisition and peak value calculation
 
     @property
     def frequencies(self):
-        """ Returns a numpy array of frequencies in Hz that 
+        """ Returns a numpy array of frequencies in Hz that
         correspond to the current settings of the instrument.
         """
         return np.linspace(
-            self.start_frequency, 
+            self.start_frequency,
             self.stop_frequency,
             self.frequency_points,
             dtype=np.float64
@@ -265,7 +272,7 @@ Single sweep acquisition and peak value calculation
 
     def trace_df(self, number=1):
         """ Returns a pandas DataFrame containing the frequency
-        and peak data for a particular trace, based on the 
+        and peak data for a particular trace, based on the
         trace number (1, 2, or 3).
         """
         return pd.DataFrame({
