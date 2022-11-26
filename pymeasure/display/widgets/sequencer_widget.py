@@ -22,38 +22,23 @@
 # THE SOFTWARE.
 #
 import logging
+import os
 from functools import partial
 from inspect import signature
 from collections import ChainMap
 
 from ..Qt import QtCore, QtWidgets, QtGui
-from ...experiment.sequencer import SequenceFileHandler, SequenceEvaluationError
+from ...experiment.sequencer import Sequencer, SequenceEvaluationError
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-
-debug_modules_enabled = (
-    #    "rowCount",
-    #    "index",
-    #    "data",
-    #    "parent",
-    #    "add_node",
-    #    "remove_node",
-    #    "headerData",
-    #     "setData",
-)
-
-
-def print_debug(module, *args):
-    if module in debug_modules_enabled:
-        print(module, *args)
 
 
 class SequencerTreeModel(QtCore.QAbstractItemModel):
     """ TODO: Documentation
     """
 
-    def __init__(self, header, data, parent=None):
+    def __init__(self, header=("Level", "Parameter", "Sequence"), data=None, parent=None):
         """ TreeModel constructor
         :param header: The header to use
         :type header: Iterable
@@ -62,16 +47,17 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         super().__init__(parent)
 
         self.header = header
-        self.root = data
+        if data is None:
+            self.root = Sequencer()
+        else:
+            self.root = data
 
     def add_node(self, parameter, parent=None):
         """ Add a row in the sequencer """
-        print_debug("add_node", parameter, parent)
         if parent is None:
             parent = self.createIndex(-1, -1)
 
         idx = len(self.root.children(parent))
-        print_debug("add_node", " idx", idx)
         parent_seq_item = parent.internalPointer()
 
         self.beginInsertRows(parent, idx, idx)
@@ -81,9 +67,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
 
     def remove_node(self, index):
         """ Remove a row in the sequencer """
-        print_debug("remove_node", index, index.internalPointer())
         children = self.rowCount(index)
-        print_debug("remove_node", "children", children)
         seq_item = index.internalPointer()
         # Remove children from last to first
         while (children > 0):
@@ -107,7 +91,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             return_value = QtCore.Qt.ItemFlag.NoItemFlags
         else:
             return_value = QtCore.Qt.ItemFlag.ItemIsEnabled | \
-                QtCore.Qt.ItemFlag.ItemIsSelectable
+                           QtCore.Qt.ItemFlag.ItemIsSelectable
             if index.column() >= 1:
                 return_value |= QtCore.Qt.ItemFlag.ItemIsEditable
         return return_value
@@ -125,13 +109,11 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         elif not role == QtCore.Qt.ItemDataRole.DisplayRole:
             return
 
-        print_debug("data", index.row(), index.column(), index.internalPointer())
         data = index.internalPointer()[index.column()]
 
         if not isinstance(data, QtCore.QObject):
             data = str(data)
 
-        print_debug("data", "ret", data)
         return data
 
     def index(self, row, col, parent):
@@ -139,7 +121,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             This method should not be called directly. This method is called implicitly by the
             QTreeView that is displaying us, as the way of finding out what to display where.
         """
-        print_debug("index", row, col, parent.row(), parent.column(), parent.internalPointer())
         if not parent or not parent.isValid():
             parent_data = None
         else:
@@ -150,7 +131,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         if child is None:
             return QtCore.QModelIndex()
         index = self.createIndex(row, col, child)
-        print_debug("index", "ret", index.row(), index.column(), index.internalPointer())
         return index
 
     def parent(self, index=None):
@@ -162,11 +142,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         :return:
         """
 
-        if index:
-            print_debug("parent", index.row(), index.column(), index.internalPointer())
-        else:
-            print_debug("parent", index)
-
         if not index or not index.isValid():
             return QtCore.QModelIndex()
 
@@ -177,7 +152,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
 
         index = self.createIndex(parent_row, 0, parent)
-        print_debug("parent", "ret", parent_row, index.row(), index.column(), child)
         return index
 
     def rowCount(self, parent):
@@ -187,7 +161,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
 
         :param parent: QModelIndex
         """
-        print_debug("rowCount", parent, parent.internalPointer())
         if parent.column() > 0:
             return 0
 
@@ -197,7 +170,6 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             parent = parent.internalPointer()
 
         rows = len(self.root.children(parent))
-        print_debug("rowCount", "ret", rows, parent)
         return rows
 
     def columnCount(self, parent):
@@ -214,13 +186,11 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             This method is called implicitly by the QTreeView that is displaying us,
             as the way of finding out what to display where.
         """
-        print_debug("headerData", section, orientation, role)
         if orientation == QtCore.Qt.Orientation.Horizontal and \
-           role == QtCore.Qt.ItemDataRole.DisplayRole:
+                role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.header[section]
 
     def setData(self, index, value, role=QtCore.Qt.ItemDataRole.EditRole):
-        print_debug("setData", index, value, role)
         return_value = False
         if role == QtCore.Qt.ItemDataRole.EditRole:
             return_value = self.root.set_data(index.internalPointer(),
@@ -266,15 +236,21 @@ class ExpressionValidator(QtGui.QValidator):
     def validate(self, input_string, pos):
         return_value = QtGui.QValidator.State.Acceptable
         try:
-            SequenceFileHandler.eval_string(input_string, log_enabled=False)
+            Sequencer.eval_string(input_string, log_enabled=False)
         except SequenceEvaluationError:
             return_value = QtGui.QValidator.State.Intermediate
         return (return_value, input_string, pos)
 
 
 class LineEditDelegate(QtWidgets.QStyledItemDelegate):
+    def __init__(self, parent, preview=False):
+        super().__init__(parent)
+        self.preview = preview
+
     def createEditor(self, parent, option, index):
         editor = QtWidgets.QLineEdit(parent)
+        if self.preview:
+            editor.setReadOnly(True)
         editor.setValidator(ExpressionValidator())
         return editor
 
@@ -291,8 +267,43 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
 
 
 class SequencerTreeView(QtWidgets.QTreeView):
-    def save(self, filename=None):
-        self.model().save(filename)
+
+    def __init__(self, inputs=None, parameter_objects=None, tree_model=None, preview=False,
+                 parent=None):
+        super().__init__(parent)
+        self._parent = parent
+        self.preview = preview
+        self.parameter_objects = parameter_objects
+        self._inputs = inputs
+        self.setModel(tree_model)
+        self._get_properties()
+        self._setup_ui()
+
+    def _get_properties(self):
+        """
+        Obtain the names of the input parameters.
+        """
+        self.names = {key: parameter.name
+                      for key, parameter
+                      in self.parameter_objects.items()
+                      if key in self._inputs}
+
+        self.names_inv = {name: key for key, name in self.names.items()}
+        self.names_choices = list(sorted(self.names_inv.keys()))
+
+    def _setup_ui(self):
+        self.setHeaderHidden(False)
+        width = self.viewport().size().width()
+        self.setColumnWidth(0, int(0.7 * width))
+        self.setColumnWidth(1, int(0.9 * width))
+        self.setColumnWidth(2, int(0.9 * width))
+
+        if self.preview:
+            self.setItemDelegateForColumn(1, LineEditDelegate(self, self.preview))
+        else:
+            self.setItemDelegateForColumn(1, ComboBoxDelegate(self, self.names_choices))
+
+        self.setItemDelegateForColumn(2, LineEditDelegate(self, self.preview))
 
     def selectRow(self, index):
         selection_model = self.selectionModel()
@@ -303,6 +314,118 @@ class SequencerTreeView(QtWidgets.QTreeView):
                                            index.internalPointer())
             selection_model.select(idx,
                                    QtCore.QItemSelectionModel.SelectionFlag.Select)
+
+    def add_tree_item(self, *, level=None, parameter=None):
+        """
+        Add an item to the sequence tree. An item will be added as a child
+        to the selected (existing) item, except when level is given.
+
+        :param level: An integer value determining the level at which an
+            item is added. If level is 0, a root item will be added.
+
+        :param parameter: If given, the parameter field is pre-filled
+        """
+
+        selected = self.selectionModel().selection().indexes()
+
+        if len(selected) >= 1 and level != 0:
+            parent = selected[0]
+        else:
+            parent = None
+
+        if parameter is None:
+            parameter = self.names_choices[0]
+
+        model = self.model()
+        node_index = model.add_node(parameter=parameter, parent=parent)
+
+        self.expandAll()
+
+        self.selectRow(node_index)
+
+    def remove_selected_tree_item(self):
+        """
+        Remove the selected item (and any child items) from the sequence tree.
+        """
+
+        selected = self.selectionModel().selection().indexes()
+
+        if len(selected) == 0:
+            return
+
+        node_index = self.model().remove_node(selected[0])
+
+        if node_index.isValid():
+            self.selectRow(node_index)
+
+    def get_sequence(self):
+        return self.data.parameters_sequence(self.names_inv)
+
+    def load_sequence(self, *, filename=None, preview=False):
+        """
+        Load a sequence from a .txt file.
+        :param fileName: Filename (string) of the to-be-loaded file.
+        """
+
+        if len(filename) == 0:
+            return
+
+        self.data = Sequencer(open(filename, "r"))
+        self.tree_model = SequencerTreeModel(data=self.data)
+        self.setModel(self.tree_model)
+        self.expandAll()
+
+    def save(self, filename=None):
+        self.model().save(filename)
+
+
+class SequenceDialog(QtWidgets.QFileDialog):
+    """
+    Widget that displays a dialog box for loading or saving a sequence tree.
+    It shows a preview of sequence tree in the dialog box
+    """
+
+    def __init__(self, save=False, parent=None):
+        """
+        Generate a serialized form of the sequence tree
+
+        :param save: True if we are saving a file. Default False.
+        """
+        super().__init__(parent)
+        self.save = save
+        self.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog, True)
+        self._setup_ui()
+
+    def _setup_ui(self):
+        preview_tab = QtWidgets.QTabWidget()
+        vbox = QtWidgets.QVBoxLayout()
+        param_vbox = QtWidgets.QVBoxLayout()
+        vbox_widget = QtWidgets.QWidget()
+        param_vbox_widget = QtWidgets.QWidget()
+
+        self.preview_param = SequencerTreeView(inputs=[],
+                                               parameter_objects={},
+                                               preview=True,
+                                               parent=self)
+        param_vbox.addWidget(self.preview_param)
+        vbox_widget.setLayout(vbox)
+        param_vbox_widget.setLayout(param_vbox)
+        preview_tab.addTab(param_vbox_widget, "Sequence Parameters")
+        self.layout().addWidget(preview_tab, 0, 5, 4, 1)
+        self.layout().setColumnStretch(5, 1)
+        self.setMinimumSize(900, 500)
+        self.resize(900, 500)
+        if self.save:
+            self.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
+            self.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
+        else:
+            self.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
+        self.currentChanged.connect(self.update_preview)
+
+    def update_preview(self, filename):
+        if not os.path.isdir(filename) and filename != '':
+            # self.preview_param.clear()
+            self.preview_param.load_sequence(filename=filename, preview=True)
 
 
 class SequencerWidget(QtWidgets.QWidget):
@@ -316,13 +439,12 @@ class SequencerWidget(QtWidgets.QWidget):
     "procedure" argument.
     """
 
-    MAXDEPTH = 10
-
     def __init__(self, inputs=None, sequence_file=None, parent=None):
         super().__init__(parent)
         self._parent = parent
 
         self._check_queue_signature()
+        self.parameter_objects = self._parent.procedure_class().parameter_objects()
 
         # if no explicit inputs are given, use the displayed parameters
         if inputs is not None:
@@ -330,13 +452,12 @@ class SequencerWidget(QtWidgets.QWidget):
         else:
             self._inputs = self._parent.displays
 
-        self._get_properties()
         self._setup_ui()
         self._layout()
 
         # Load the sequence file if supplied.
         if sequence_file is not None:
-            self.load_sequence(fileName=sequence_file)
+            self.load_sequence(filename=sequence_file)
 
     def _check_queue_signature(self):
         """
@@ -354,111 +475,55 @@ class SequencerWidget(QtWidgets.QWidget):
                 "the 'SequencerWidget'."
             )
 
-    def _get_properties(self):
-        """
-        Obtain the names of the input parameters.
-        """
-
-        parameter_objects = self._parent.procedure_class().parameter_objects()
-
-        self.names = {key: parameter.name
-                      for key, parameter
-                      in parameter_objects.items()
-                      if key in self._inputs}
-
-        self.names_inv = {name: key for key, name in self.names.items()}
-        self.names_choices = list(sorted(self.names_inv.keys()))
-
     def _setup_ui(self):
-        self.tree = SequencerTreeView(self)
-        self.tree.setHeaderHidden(False)
-        width = self.tree.viewport().size().width()
-        self.tree.setColumnWidth(0, int(0.7 * width))
-        self.tree.setColumnWidth(1, int(0.9 * width))
-        self.tree.setColumnWidth(2, int(0.9 * width))
-        self.tree.setItemDelegateForColumn(1, ComboBoxDelegate(self, self.names_choices))
-        self.tree.setItemDelegateForColumn(2, LineEditDelegate(self))
-        self.add_root_item_btn = QtWidgets.QPushButton("Add root item")
-        self.add_root_item_btn.clicked.connect(
-            partial(self._add_tree_item, level=0)
-        )
-
-        self.add_tree_item_btn = QtWidgets.QPushButton("Add item")
-        self.add_tree_item_btn.clicked.connect(self._add_tree_item)
-
-        self.remove_tree_item_btn = QtWidgets.QPushButton("Remove item")
-        self.remove_tree_item_btn.clicked.connect(self._remove_selected_tree_item)
+        self.tree = SequencerTreeView(inputs=self._inputs,
+                                      parameter_objects=self.parameter_objects,
+                                      tree_model=SequencerTreeModel(),
+                                      parent=self)
 
         self.load_seq_button = QtWidgets.QPushButton("Load sequence")
         self.load_seq_button.clicked.connect(self.load_sequence)
         self.load_seq_button.setToolTip("Load a sequence from a file.")
 
+        self.save_seq_button = QtWidgets.QPushButton("Save sequence")
+        self.save_seq_button.clicked.connect(self.save_sequence)
+        self.save_seq_button.setToolTip("Save a sequence to a file.")
+
         self.queue_button = QtWidgets.QPushButton("Queue sequence")
         self.queue_button.clicked.connect(self.queue_sequence)
 
+        self.add_root_item_btn = QtWidgets.QPushButton("Add root item")
+        self.add_root_item_btn.clicked.connect(
+            partial(self.tree.add_tree_item, level=0)
+        )
+
+        self.add_tree_item_btn = QtWidgets.QPushButton("Add item")
+        self.add_tree_item_btn.clicked.connect(self.tree.add_tree_item)
+
+        self.remove_tree_item_btn = QtWidgets.QPushButton("Remove item")
+        self.remove_tree_item_btn.clicked.connect(self.tree.remove_selected_tree_item)
+
     def _layout(self):
+
         btn_box = QtWidgets.QHBoxLayout()
-        btn_box.addWidget(self.add_root_item_btn)
-        btn_box.addWidget(self.add_tree_item_btn)
-        btn_box.addWidget(self.remove_tree_item_btn)
+        btn_box.addWidget(self.load_seq_button)
+        btn_box.addWidget(self.save_seq_button)
 
         btn_box_2 = QtWidgets.QHBoxLayout()
-        btn_box_2.addWidget(self.load_seq_button)
-        btn_box_2.addWidget(self.queue_button)
+        btn_box_2.addWidget(self.add_root_item_btn)
+        btn_box_2.addWidget(self.add_tree_item_btn)
+        btn_box_2.addWidget(self.remove_tree_item_btn)
+
+        btn_box_3 = QtWidgets.QHBoxLayout()
+        btn_box_3.addWidget(self.queue_button)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(6)
-        vbox.addWidget(self.tree)
         vbox.addLayout(btn_box)
+        vbox.addWidget(self.tree)
         vbox.addLayout(btn_box_2)
+        vbox.addLayout(btn_box_3)
         self.setLayout(vbox)
-
-    def _add_tree_item(self, *, level=None, parameter=None, sequence=None):
-        """
-        Add an item to the sequence tree. An item will be added as a child
-        to the selected (existing) item, except when level is given.
-
-        :param level: An integer value determining the level at which an
-            item is added. If level is 0, a root item will be added.
-
-        :param parameter: If given, the parameter field is pre-filled
-        :param sequence: If given, the sequence field is pre-filled
-        """
-
-        selected = self.tree.selectionModel().selection().indexes()
-
-        if len(selected) >= 1 and level != 0:
-            parent = selected[0]
-        else:
-            parent = None
-
-        if parameter is None:
-            parameter = self.names_choices[0]
-
-        model = self.tree.model()
-        node_index = model.add_node(parameter=parameter, parent=parent)
-
-        self.tree.expandAll()
-
-        self.tree.selectRow(node_index)
-
-    def _remove_selected_tree_item(self):
-        """
-        Remove the selected item (and any child items) from the sequence tree.
-        """
-
-        selected = self.tree.selectionModel().selection().indexes()
-
-        if len(selected) == 0:
-            return
-
-        node_index = self.tree.model().remove_node(selected[0])
-
-        if node_index.isValid():
-            self.tree.selectRow(node_index)
-
-    def get_sequence(self):
-        return self.data.parameters_sequence(self.names_inv)
 
     def queue_sequence(self):
         """
@@ -469,7 +534,7 @@ class SequencerWidget(QtWidgets.QWidget):
         self.queue_button.setEnabled(False)
 
         try:
-            sequence = self.get_sequence()
+            sequence = self.tree.get_sequence()
         except SequenceEvaluationError:
             log.error("Evaluation of one of the sequence strings went wrong, no sequence queued.")
         else:
@@ -480,7 +545,6 @@ class SequencerWidget(QtWidgets.QWidget):
             for entry in sequence:
                 QtWidgets.QApplication.processEvents()
                 parameters = dict(ChainMap(*entry[::-1]))
-
                 procedure = self._parent.make_procedure()
                 procedure.set_parameters(parameters)
                 self._parent.queue(procedure=procedure)
@@ -488,21 +552,24 @@ class SequencerWidget(QtWidgets.QWidget):
         finally:
             self.queue_button.setEnabled(True)
 
-    def load_sequence(self, *, fileName=None):
-        """
-        Load a sequence from a .txt file.
+    def save_sequence(self):
+        dialog = SequenceDialog(save=True)
+        if dialog.exec():
+            filename = dialog.selectedFiles()[0]
+            self.tree.save(filename)
+            log.info('Saved sequence file %s' % filename)
 
-        :param fileName: Filename (string) of the to-be-loaded file.
-        """
-
-        if fileName is None:
-            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'OpenFile')
-
-        if len(fileName) == 0:
-            return
-
-        self.data = SequenceFileHandler(open(fileName, "r"))
-        self.tree_model = SequencerTreeModel(header=["Level", "Parameter", "Sequence"],
-                                             data=self.data)
-        self.tree.setModel(self.tree_model)
-        self.tree.expandAll()
+    def load_sequence(self, filename=False):
+        if filename:
+            self.tree.load_sequence(filename=filename)
+            log.info('Loaded sequence file %s' % filename)
+        else:
+            dialog = SequenceDialog()
+            if dialog.exec():
+                filenames = dialog.selectedFiles()
+                for filename in map(str, filenames):
+                    if filename == '':
+                        return
+                    else:
+                        self.tree.load_sequence(filename=filename)
+                        log.info('Loaded sequence file %s' % filename)
