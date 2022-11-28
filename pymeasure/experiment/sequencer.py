@@ -66,7 +66,7 @@ class SequenceItem(object):
         return "{} \"{}\", \"{}\"".format("-" * (self.level + 1), self.parameter, self.expression)
 
 
-class SequenceFileHandler:
+class Sequencer():
     """ Represent a sequence file and its methods
 
     A sequence file is a text file which represent a tree structure.
@@ -93,6 +93,7 @@ class SequenceFileHandler:
  """
 
     MAXDEPTH = 10
+
     SAFE_FUNCTIONS = {
         'range': range,
         'sorted': sorted,
@@ -128,10 +129,12 @@ class SequenceFileHandler:
         'tanh': numpy.tanh,
     }
 
-    def __init__(self, file_obj):
-        self.file_obj = file_obj
-        self._sequences = None
-        self.parse()
+    def __init__(self, filename=''):
+        self._sequences = []
+        self.parent = {}
+        if filename:
+            with open(filename, 'r') as f:
+                self.parse(f)
 
     @staticmethod
     def eval_string(string, name=None, depth=None, log_enabled=True):
@@ -153,7 +156,7 @@ class SequenceFileHandler:
         if len(string) > 0:
             try:
                 evaluated_string = eval(
-                    string, {"__builtins__": None}, SequenceFileHandler.SAFE_FUNCTIONS
+                    string, {"__builtins__": None}, Sequencer.SAFE_FUNCTIONS
                 )
             except TypeError:
                 if log_enabled:
@@ -294,19 +297,16 @@ class SequenceFileHandler:
     def __getitem__(self, key):
         return self.sequences[key]
 
-    def parse(self):
+    def parse(self, file_object):
         """
         Read and parse a sequence file.
 
         """
-
-        self._sequences = []
-        self.parent = {}
         current_parent = None
 
         pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
-        self.file_obj.seek(0)
-        for line in self.file_obj:
+        file_object.seek(0)
+        for line in file_object:
             line = line.strip()
             match = pattern.search(line)
 
@@ -340,16 +340,11 @@ class SequenceFileHandler:
             current_parent = data
             self._sequences.append(data)
 
-    def save(self, file_obj):
-        """ Save modified sequence to file stream
-
-        :param file_obj: file object
-        """
-
-        if file_obj is None:
-            file_obj = self.file_obj
-
-        file_obj.write("\n".join(str(item) for item in self.sequences))
+    def save(self, filename=None):
+        """ Save modified sequence to file """
+        with open(filename, 'w') as f:
+            for item in self.sequences:
+                f.write(str(item) + "\n")
 
     def parameters_sequence(self, names_map=None):
         """
