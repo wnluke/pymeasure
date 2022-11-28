@@ -280,6 +280,7 @@ class SequencerTreeView(QtWidgets.QTreeView):
     def __init__(self, inputs=None, parameter_objects={}, preview=False,
                  parent=None):
         super().__init__(parent)
+        self.data = None
         self._parent = parent
         self.preview = preview
         self.parameter_objects = parameter_objects
@@ -380,7 +381,10 @@ class SequencerTreeView(QtWidgets.QTreeView):
         if len(filename) == 0:
             return
 
-        self.data = Sequencer(filename)
+        if self.data is None:
+            self.data = Sequencer(filename)
+        else:
+            self.data.parse(open(filename, 'r'))
         self.tree_model = SequencerTreeModel(sequencer=self.data)
         self.setModel(self.tree_model)
         self.expandAll()
