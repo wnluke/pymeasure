@@ -25,7 +25,6 @@ import logging
 
 import os
 
-
 from functools import partial
 from inspect import signature
 from collections import ChainMap
@@ -439,6 +438,7 @@ class SequenceDialog(QtWidgets.QFileDialog):
     def update_preview(self, filename):
         if not os.path.isdir(filename) and filename != '':
             self.preview_param.load_sequence(filename=filename)
+
 
 class SequencerWidget(QtWidgets.QWidget):
     """
