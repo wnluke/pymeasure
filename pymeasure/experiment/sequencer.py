@@ -300,7 +300,6 @@ class SequenceFileHandler:
 
         """
 
-
         self.parent = {}
         current_parent = None
 
