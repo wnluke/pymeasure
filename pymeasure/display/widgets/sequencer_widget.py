@@ -384,7 +384,7 @@ class SequencerTreeView(QtWidgets.QTreeView):
         if self.data is None:
             self.data = Sequencer(filename)
         else:
-            self.data.parse(open(filename, 'r'))
+            self.data.parse(filename)
         self.tree_model = SequencerTreeModel(sequencer=self.data)
         self.setModel(self.tree_model)
         self.expandAll()

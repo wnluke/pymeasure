@@ -133,8 +133,7 @@ class Sequencer():
         self._sequences = []
         self.parent = {}
         if filename:
-            with open(filename, 'r') as f:
-                self.parse(f)
+            self.parse(filename)
 
     @staticmethod
     def eval_string(string, name=None, depth=None, log_enabled=True):
@@ -297,48 +296,48 @@ class Sequencer():
     def __getitem__(self, key):
         return self.sequences[key]
 
-    def parse(self, file_object):
+    def parse(self, filename):
         """
         Read and parse a sequence file.
 
         """
-        current_parent = None
+        with open(filename, 'r') as file_object:
+            current_parent = None
+            pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
+            file_object.seek(0)
+            for line in file_object:
+                line = line.strip()
+                match = pattern.search(line)
 
-        pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
-        file_object.seek(0)
-        for line in file_object:
-            line = line.strip()
-            match = pattern.search(line)
+                if not match:
+                    continue
 
-            if not match:
-                continue
+                level = len(match.group(1)) - 1
 
-            level = len(match.group(1)) - 1
+                if level < 0:
+                    continue
 
-            if level < 0:
-                continue
-
-            parameter = match.group(2)
-            sequence = match.group(3)
-            parent_level = -1 if current_parent is None else current_parent.level
-            if level == (parent_level + 1):
-                pass
-            elif (level <= parent_level):
-                # Find parent
-                current_parent = current_parent.parent
-                while current_parent is not None:
-                    if level == (current_parent.level + 1):
-                        break
+                parameter = match.group(2)
+                sequence = match.group(3)
+                parent_level = -1 if current_parent is None else current_parent.level
+                if level == (parent_level + 1):
+                    pass
+                elif (level <= parent_level):
+                    # Find parent
                     current_parent = current_parent.parent
-            else:
-                raise SequenceEvaluationError("Invalid file format: level missing ?")
+                    while current_parent is not None:
+                        if level == (current_parent.level + 1):
+                            break
+                        current_parent = current_parent.parent
+                else:
+                    raise SequenceEvaluationError("Invalid file format: level missing ?")
 
-            data = SequenceItem(level,
-                                parameter,
-                                sequence,
-                                current_parent)
-            current_parent = data
-            self._sequences.append(data)
+                data = SequenceItem(level,
+                                    parameter,
+                                    sequence,
+                                    current_parent)
+                current_parent = data
+                self._sequences.append(data)
 
     def save(self, filename=None):
         """ Save modified sequence to file """
