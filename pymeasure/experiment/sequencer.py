@@ -130,8 +130,8 @@ class SequenceFileHandler:
 
     def __init__(self, file_obj):
         self.file_obj = file_obj
-        self._sequences = None
-        self.parse()
+        self._sequences = []
+        self.parse(file_obj)
 
     @staticmethod
     def eval_string(string, name=None, depth=None, log_enabled=True):
@@ -294,19 +294,19 @@ class SequenceFileHandler:
     def __getitem__(self, key):
         return self.sequences[key]
 
-    def parse(self):
+    def parse(self, file_object):
         """
         Read and parse a sequence file.
 
         """
 
-        self._sequences = []
+
         self.parent = {}
         current_parent = None
 
         pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
-        self.file_obj.seek(0)
-        for line in self.file_obj:
+        file_object.seek(0)
+        for line in file_object:
             line = line.strip()
             match = pattern.search(line)
 

@@ -340,7 +340,7 @@ class SequencerWidget(QtWidgets.QWidget):
         self._parent = parent
 
         self._check_queue_signature()
-
+        self.data = None
         # if no explicit inputs are given, use the displayed parameters
         if inputs is not None:
             self._inputs = inputs
@@ -538,7 +538,10 @@ class SequencerWidget(QtWidgets.QWidget):
         elif len(filename) == 0:
             return
 
-        self.data = SequenceFileHandler(open(filename, "r"))
+        if self.data is None:
+            self.data = SequenceFileHandler(open(filename, "r"))
+        else:
+            self.data.parse(open(filename, "r"))
         self.tree_model = SequencerTreeModel(data=self.data)
         self.tree.setModel(self.tree_model)
         self.tree.expandAll()
