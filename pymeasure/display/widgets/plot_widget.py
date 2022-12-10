@@ -199,11 +199,11 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
         return QtCore.QSize(300, 600)
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
-        styles = (QtCore.Qt.SolidLine,
-                  QtCore.Qt.DashLine,
-                  QtCore.Qt.DotLine,
-                  QtCore.Qt.DashDotLine,
-                  QtCore.Qt.DashDotDotLine)
+        styles = (QtCore.Qt.PenStyle.SolidLine,
+                  QtCore.Qt.PenStyle.DashLine,
+                  QtCore.Qt.PenStyle.DotLine,
+                  QtCore.Qt.PenStyle.DashDotLine,
+                  QtCore.Qt.PenStyle.DashDotDotLine)
         need_pen = False
         if 'pen' not in kwargs:
             need_pen = True
@@ -218,6 +218,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
                                          style=styles[index % len(styles)],
                                          )
             curve[column] = ResultsCurve(results,
+                                         wdg=self,
                                          x=self.plot_frame.x_axis,
                                          y=column,
                                          **kwargs

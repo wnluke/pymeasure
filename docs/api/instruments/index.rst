@@ -45,6 +45,8 @@ Instruments by manufacturer:
    keithley/index
    keysight/index
    lakeshore/index
+   lecroy/index
+   mksinst/index
    newport/index
    ni/index
    oxfordinstruments/index
