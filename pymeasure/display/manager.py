@@ -174,8 +174,7 @@ class Manager(QtCore.QObject):
         """
         for curve in experiment.curve_list:
             if curve:
-                for i_curve in curve.values():
-                    i_curve.wdg.load(curve)
+                curve.wdg.load(curve)
 
         self.browser.add(experiment)
         self.experiments.append(experiment)
