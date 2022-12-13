@@ -43,13 +43,14 @@ class ResultsTable(QtCore.QObject):
     """ Class representing a panda dataframe """
     data_changed = QtCore.Signal(int, int, int, int)
 
-    def __init__(self, results, color, float_digits, force_reload=False, **kwargs):
+    def __init__(self, results, color, float_digits, force_reload=False, wdg=None, **kwargs):
         super().__init__()
         self.results = results
         self.color = color
         self.force_reload = force_reload
         self.last_row_count = 0
         self.float_digits = float_digits
+        self.wdg = wdg
         self._data = self.results.data
         self._started = False
 
@@ -96,7 +97,7 @@ class PandasModelBase(QtCore.QAbstractTableModel):
     display them as a single table.
 
     The multiple pandas dataframes are provided as ResultTable class instances
-    and all of the share the same number of columns.
+    and all of them share the same number of columns.
 
     There are some assumptions:
     - Series in the dataframe are identical, we call this number k
@@ -160,16 +161,11 @@ class PandasModelBase(QtCore.QAbstractTableModel):
         return None
 
     def _get_new_rows_columns(self, result, r1, c1, r2, c2):
-        new_rows = new_rows_start = new_columns = new_columns_start = 0
-        current_rows = self.pandas_row_count()
-        current_columns = self.pandas_column_count()
-        if current_rows > self.row_count:
-            new_rows = current_rows - self.row_count
-            new_rows_start = self.row_count
+        new_rows = self.pandas_row_count() - self.row_count
+        new_rows_start = self.row_count
 
-        if current_columns > self.column_count:
-            new_columns = current_columns - self.column_count
-            new_columns_start = self.column_count
+        new_columns = self.pandas_column_count() - self.column_count
+        new_columns_start = self.column_count
 
         return new_rows, new_rows_start, new_columns, new_columns_start
 
@@ -195,23 +191,23 @@ class PandasModelBase(QtCore.QAbstractTableModel):
 
     def _data_changed(self, result, r1, c1, r2, c2):
         """ Internal method to handle data changed signal """
-        new_rows, new_rows_start, new_columns, new_columns_start = \
+        rows, rows_start, columns, columns_start = \
             self._get_new_rows_columns(result, r1, c1, r2, c2)
-        if new_rows or new_columns:
-            if new_rows > 0:
+        if rows or columns:
+            if rows > 0:
                 # New rows available
                 self.beginInsertRows(QtCore.QModelIndex(),
-                                     new_rows_start,
-                                     new_rows_start + new_rows - 1)
-                self.row_count += new_rows
+                                     rows_start,
+                                     rows_start + rows - 1)
+                self.row_count += rows
                 self.endInsertRows()
 
-            if new_columns > 0:
+            if columns > 0:
                 # New columns available
                 self.beginInsertColumns(QtCore.QModelIndex(),
-                                        new_columns_start,
-                                        new_columns_start + new_columns - 1)
-                self.column_count += new_columns
+                                        columns_start,
+                                        columns_start + columns - 1)
+                self.column_count += columns
                 self.endInsertColumns()
         else:
             top_bottom = self._get_row_column_set(result, r1, c1, r2, c2)
@@ -245,8 +241,9 @@ class PandasModelBase(QtCore.QAbstractTableModel):
         """ Translate from full table coordinate to single result coordinates """
         raise Exception("Subclass should implement it")
 
-    def translate_to_full(self, result, row, col):
+    def translate_to_global(self, result, row, col):
         """ Translate from single result coordinates to full table coordinates """
+        raise Exception("Subclass should implement it")
 
     @property
     def horizontal_header(self):
@@ -445,10 +442,8 @@ class Table(QtWidgets.QTableView):
             for k, v in self.supported_formats.items():
                 if v == ext:
                     break
-            try:
-                getattr(df.style, 'to_' + k)(filename)
-            except AttributeError:
-                getattr(df, 'to_' + k)(filename)
+            prefix = df.style if k == "latex" else df
+            getattr(prefix, 'to_' + k)(filename)
 
     def refresh_action(self):
         self.update_tables()
@@ -535,7 +530,7 @@ class TableWidget(TabWidget, QtWidgets.QWidget):
         self.setLayout(vbox)
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
-        ret = ResultsTable(results, color, self.float_digits, **kwargs)
+        ret = ResultsTable(results, color, self.float_digits, wdg=self, **kwargs)
         return ret
 
     def load(self, table):

@@ -60,7 +60,7 @@ class ManagedWindowWithTable(ManagedWindowBase):
         self.log_widget = LogWidget("Experiment Log")
         self.table_widget = TableWidget("Experiment Table",
                                         procedure_class.DATA_COLUMNS,
-                                        by_column = True,
+                                        by_column=True,
                                         )
         if "widget_list" not in kwargs:
             kwargs["widget_list"] = ()
@@ -74,6 +74,8 @@ class MainWindow(ManagedWindowWithTable):
     def __init__(self):
         super().__init__(
             procedure_class=TestProcedure,
+            inputs=['iterations', 'delay', 'seed'],
+            displays=['iterations', 'delay', 'seed'],
         )
         self.setWindowTitle('GUI Example')
 
