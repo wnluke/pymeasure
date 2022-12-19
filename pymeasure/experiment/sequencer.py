@@ -63,18 +63,20 @@ class SequenceItem(object):
             return super().__setitem__(idx, value)
 
     def __str__(self):
-        return "{} \"{}\" \"{}\"".format("-"*(self.level + 1), self.parameter, self.expression)
+        return "{} \"{}\", \"{}\"".format("-" * (self.level + 1), self.parameter, self.expression)
 
 
-class SequenceFileHandler:
-    """ Represent a sequence file and its methods
+class SequenceHandler:
+    """ It represents a sequence, that is a tree of parameter sweep.
 
-    A sequence file is a text file which represent a tree structure.
-    Each node of the tree is composed of 3 elements:
+    A sequence can be loaded from a file or created programmatically with :meth:`~.add_node`
+    and :meth:`~.remove_node`
+
+    The internal representation is a nodes tree with each node composed of 3 elements:
 
     - Level: that is the distance from the root node
     - Parameter: A string that is the parameter name
-    - Expression: A python expression which describe the list of values to be assumed
+    - Expression: A python expression which describes the list of values to be assumed
       by the Parameter.
 
     The syntax of the file is as follow: ::
@@ -89,8 +91,9 @@ class SequenceFileHandler:
     Parameter4 has no child.
 
     Data is stored internally as a list where each
-    item matches a row of the sequence file
-    [Add grphical representation ???]
+    item matches a row of the sequence file.
+
+    Data can also be saved back to the file object provided.
  """
 
     MAXDEPTH = 10
@@ -129,10 +132,11 @@ class SequenceFileHandler:
         'tanh': numpy.tanh,
     }
 
-    def __init__(self, file_obj):
-        self.file_obj = file_obj
-        self._sequences = None
-        self.parse()
+    def __init__(self, valid_inputs=(), file_obj=None):
+        self._sequences = []
+        self.valid_inputs = valid_inputs
+        if file_obj:
+            self.load(file_obj)
 
     @staticmethod
     def eval_string(string, name=None, depth=None, log_enabled=True):
@@ -154,7 +158,7 @@ class SequenceFileHandler:
         if len(string) > 0:
             try:
                 evaluated_string = eval(
-                    string, {"__builtins__": None}, SequenceFileHandler.SAFE_FUNCTIONS
+                    string, {"__builtins__": None}, SequenceHandler.SAFE_FUNCTIONS
                 )
             except TypeError:
                 if log_enabled:
@@ -184,13 +188,6 @@ class SequenceFileHandler:
         evaluated_string = numpy.array(evaluated_string)
         return evaluated_string
 
-    @property
-    def sequences(self):
-        """ Return a list of sequences, each one representing a node of the tree """
-        if self._sequences is None:
-            raise Exception("Not initialized")
-        return self._sequences
-
     def _get_idx(self, seq_item):
         """ Return the index and level of the list whose value correspond to sequence """
         try:
@@ -201,7 +198,7 @@ class SequenceFileHandler:
         if idx < 0:
             level = -1
         else:
-            level = self[idx].level
+            level = self._sequences[idx].level
 
         return idx, level
 
@@ -209,14 +206,14 @@ class SequenceFileHandler:
         """ Add a node under the parent identified by parent_seq_item """
         parent_idx, level = self._get_idx(parent_seq_item)
 
-        seq_item = SequenceItem(level+1,
+        seq_item = SequenceItem(level + 1,
                                 name,
                                 "",
                                 parent_seq_item)
         # Find position where to insert new row
         idx = parent_idx + 1
-        while idx < len(self):
-            if self[idx].level <= level:
+        while idx < len(self._sequences):
+            if self._sequences[idx].level <= level:
                 break
             idx += 1
 
@@ -238,10 +235,10 @@ class SequenceFileHandler:
         idx, current_level = self._get_idx(seq_item)
         child_list = []
         idx += 1
-        while idx < len(self):
-            if self[idx].level == (current_level + 1):
-                child_list.append(self[idx])
-            if self[idx].level <= current_level:
+        while idx < len(self._sequences):
+            if self._sequences[idx].level == (current_level + 1):
+                child_list.append(self._sequences[idx])
+            if self._sequences[idx].level <= current_level:
                 break
             idx += 1
         return child_list
@@ -286,28 +283,26 @@ class SequenceFileHandler:
         if idx < 0:
             return False
 
-        self.sequences[idx][column] = value
+        self._sequences[idx][column] = value
         return True
 
-    def __len__(self):
-        return len(self.sequences)
-
-    def __getitem__(self, key):
-        return self.sequences[key]
-
-    def parse(self):
+    def load(self, file_obj, append=False):
         """
-        Read and parse a sequence file.
+        Read and parse a sequence stored in a file.
+
+        :params file_obj: file object
+        :params append: flag to control whether to append to or replace current sequence
 
         """
 
-        self._sequences = []
-        self.parent = {}
+        _sequences = []
+        if append:
+            _sequences += self._sequences
         current_parent = None
 
         pattern = re.compile("([-]+) \"(.*?)\", \"(.*?)\"")
-        self.file_obj.seek(0)
-        for line in self.file_obj:
+        file_obj.seek(0)
+        for line in file_obj:
             line = line.strip()
             match = pattern.search(line)
 
@@ -334,20 +329,27 @@ class SequenceFileHandler:
             else:
                 raise SequenceEvaluationError("Invalid file format: level missing ?")
 
+            if self.valid_inputs and parameter not in self.valid_inputs:
+                error_message = f'Unexpected parameter name "{parameter:s}", ' + \
+                    f'valid parameters name are {self.valid_inputs}'
+                raise SequenceEvaluationError(error_message)
+
             data = SequenceItem(level,
                                 parameter,
                                 sequence,
                                 current_parent)
             current_parent = data
-            self._sequences.append(data)
+            _sequences.append(data)
+        # No errors, update internal data
+        self._sequences = _sequences
 
-    def save(self, stream):
+    def save(self, file_obj):
         """ Save modified sequence to file stream
 
-        :param stream: file object
+        :param file_obj: file object
         """
-        if stream:
-            stream.write("\n".join(str(item) for item in self.sequences))
+
+        file_obj.write("\n".join(str(item) for item in self._sequences))
 
     def parameters_sequence(self, names_map=None):
         """
@@ -364,7 +366,9 @@ class SequenceFileHandler:
 
         idx = 0
         while (idx < len(self._sequences)):
-            depth, parameter, seq = self[idx].level, self[idx].parameter, self[idx].expression
+            depth, parameter, seq = self._sequences[idx].level, \
+                self._sequences[idx].parameter, \
+                self._sequences[idx].expression
             values = self.eval_string(seq, parameter, depth)
             if names_map is not None:
                 parameter = names_map[parameter]
@@ -418,19 +422,3 @@ class SequenceFileHandler:
             if not isinstance(sequences[idx], tuple):
                 sequences[idx] = (sequences[idx],)
         return sequences
-
-
-if __name__ == "__main__":
-    import sys
-
-    fd = open(sys.argv[1])
-    names_map = {
-        "Delay Time": "delay",
-        "Random Seed": "seed",
-        "Loop Iterations": "iterations",
-    }
-    s = SequenceFileHandler(fd)
-    print(s.parameters_sequence(names_map))
-    print(s.sequences)
-    print(s[2])
-    s.save(sys.stdout)

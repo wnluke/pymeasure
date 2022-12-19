@@ -25,7 +25,7 @@
 import pytest
 
 from io import StringIO
-from pymeasure.experiment.sequencer import SequenceFileHandler, SequenceEvaluationError
+from pymeasure.experiment.sequencer import SequenceHandler, SequenceEvaluationError
 
 
 def non_empty_lines(text):
@@ -75,16 +75,16 @@ def test_sequencer(seq_file_text):
     file_text, levels, children, params = seq_file_text
     fd = StringIO(file_text)
 
-    s = SequenceFileHandler(fd)
-    assert(len(s) == non_empty_lines(file_text))
+    s = SequenceHandler(file_obj=fd)
+    assert len(s._sequences) == non_empty_lines(file_text)
 
     for index, lev in enumerate(levels):
-        assert(s[index].level == lev)
+        assert s._sequences[index].level == lev
     for index, c in enumerate(children):
-        assert(len(s.children(s[index])) == c)
+        assert len(s.children(s._sequences[index])) == c
 
     for index, c in enumerate(params):
-        assert(s[index].parameter == c)
+        assert s._sequences[index].parameter == c
 
 
 seq_file_text_err1 = """
@@ -122,5 +122,5 @@ def test_sequencer_errors(seq_file_text_err):
     fd = StringIO(file_text)
 
     with pytest.raises(exception, match=exc_text):
-        seq = SequenceFileHandler(fd)
+        seq = SequenceHandler(file_obj=fd)
         seq.parameters_sequence()
