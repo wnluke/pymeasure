@@ -465,7 +465,7 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
 
         curve_color = pg.intColor(0)
         for curve in curve_list:
-            if hasattr(curve, 'color'):
+            if curve and hasattr(curve, 'color'):
                 curve_color = curve.color
                 break
 

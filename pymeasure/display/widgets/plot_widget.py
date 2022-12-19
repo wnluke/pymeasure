@@ -38,6 +38,9 @@ class MultiResultsCurve(dict):
     def __getattr__(self, name):
         if name == "wdg":
             return list(self.values())[0].wdg
+        elif name == "color":
+            return list(self.values())[0].color
+        return super().__getattr__(name)
 
 class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):
