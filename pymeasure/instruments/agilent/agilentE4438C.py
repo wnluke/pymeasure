@@ -31,7 +31,9 @@ import time
 
 
 class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
-    """ Class representing Agilent E4438C RF signal generator """
+    """ Class representing Agilent E4438C RF signal generator
+
+    """
 
     # Define instrument limits according to datasheet
     power_values = (-136.0, 10.0)
@@ -189,10 +191,12 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         """ Load data into signal generator for transmission.
 
         The parameters are:
+
         :param bitsequences: list of items. Each item is a string of '1' or '0'
                              in transmission order
         :param spacing: list of integer, gap to be inserted between each bitsequence
                         expressed in number of bit
+
         """
         data = []
         for bitseq, spacing in zip(bitsequences, spacings):

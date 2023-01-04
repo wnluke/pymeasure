@@ -284,9 +284,8 @@ class RFSignalGeneratorIQ:
     """ Represent IQ modulation part of a  generic signal generator.
 
         The IQ modulation to create modulation signal by providing IQ sequences.
-
         This class define a basic interface which should be implemented for
-         each specific instrument.
+        each specific instrument.
         This class is a mixin
 
 An example for data pattern generation

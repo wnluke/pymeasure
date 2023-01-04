@@ -213,8 +213,9 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
 
     def data_load(self, bitsequences, spacings):
         """ Load data into signal generator for transmission, the parameters are:
-        bitsequences: list of items. Each item is a string of '1' or '0' in transmission order
-        spacings: integer list, gap to be inserted between each bitsequence
+
+        :param bitsequences: list of items. Each item is a string of '1' or '0' in transmission order
+        :param spacings: integer list, gap to be inserted between each bitsequence
                   expressed in number of bit
         """
 
