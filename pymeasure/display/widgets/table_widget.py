@@ -23,7 +23,7 @@
 #
 
 import logging
-from numpy import float64, NaN
+from numpy import float64, isnan, NaN
 from functools import partial
 import pyqtgraph as pg
 import pandas as pd
@@ -33,7 +33,8 @@ from .tab_widget import TabWidget
 from ...experiment import Procedure
 
 SORT_ROLE = QtCore.Qt.ItemDataRole.UserRole + 1
-SORTING_ENABLED = True
+
+SORTING_ENABLED = True  # Allow to disable sorting, for debug purpose only
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -42,21 +43,29 @@ log.addHandler(logging.NullHandler())
 class ResultsTable(QtCore.QObject):
     """ Class representing a panda dataframe """
     data_changed = QtCore.Signal(int, int, int, int)
+    color_changed = QtCore.Signal(object)
 
-    def __init__(self, results, color, float_digits, force_reload=False, wdg=None, **kwargs):
+    def __init__(self, results, color, column_index=None,
+                 force_reload=False, wdg=None, **kwargs):
         super().__init__()
         self.results = results
         self.color = color
         self.force_reload = force_reload
         self.last_row_count = 0
-        self.float_digits = float_digits
         self.wdg = wdg
-        self._data = self.results.data
+        self.column_index = column_index
+        self.data = self.results.data
         self._started = False
 
     @property
     def data(self):
         return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+        if self.column_index is not None:
+            self._data = self._data.set_index(self.column_index)
 
     @property
     def rows(self):
@@ -80,7 +89,7 @@ class ResultsTable(QtCore.QObject):
             return
         if self.force_reload:
             self.results.reload()
-        self._data = self.results.data
+        self.data = self.results.data
         current_row_count, columns = self._data.shape
         if (self.last_row_count < current_row_count):
             # Request cells content update
@@ -90,46 +99,30 @@ class ResultsTable(QtCore.QObject):
 
     def set_color(self, color):
         self.color = color
+        self.color_changed.emit(color)
 
 
 class PandasModelBase(QtCore.QAbstractTableModel):
-    """ This class provided a model to manage multiple panda dataframes and
-    display them as a single table.
-
-    The multiple pandas dataframes are provided as ResultTable class instances
-    and all of them share the same number of columns.
-
-    There are some assumptions:
-    - Series in the dataframe are identical, we call this number k
-    - Series length can be different, we call this number l(x), where x=1..n
-
-    The data can be presented as follow:
-    - By column: each series in a separate column, in this case table shape
-    will be: (k*n) x (max(l(x) x=1..n)
-    - By row: column fixed to the number of series, in this case table shape
-    will be: k x (sum of l(x) x=1..n)
-    """
-    def __init__(self, parent=None):
+    def __init__(self, column_index=None, float_digits=6, parent=None):
         super().__init__(parent)
-        self._init_data()
-
-    def _init_data(self):
         self.results_list = []
-        self.row_count = 0
-        self.column_count = 0
+        self.float_digits = float_digits
+        self.column_index = column_index
+        self.header_decoration = {}
+        self.compose_dataframe()
 
     def clear(self):
         self.beginResetModel()
         for results in self.results_list:
             results.stop()
-        self._init_data()
+        self.results_list = []
         self.endResetModel()
 
     def add_results(self, results):
         if results not in self.results_list:
             self.results_list.append(results)
             results.data_changed.connect(partial(self._data_changed, results))
-            self.layoutChanged.emit()
+            results.color_changed.connect(partial(self._color_changed, results))
             results.init()
             results.start()
             results.update_data()
@@ -137,31 +130,33 @@ class PandasModelBase(QtCore.QAbstractTableModel):
     def remove_results(self, results):
         if results in self.results_list:
             self.results_list.remove(results)
-        self.row_count = self.pandas_row_count()
-        self.column_count = self.pandas_column_count()
         results.stop()
-        self.layoutChanged.emit()
+        self._data_changed(None, 0, 0, 0, 0)
+        self._color_changed(None, None)
 
     def rowCount(self, parent=None):
-        return self.row_count
+        return self.df.shape[0]
 
     def columnCount(self, parent=None):
-        return self.column_count
+        return self.df.shape[1]
 
     def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
         if index.isValid() and role in (QtCore.Qt.ItemDataRole.DisplayRole, SORT_ROLE):
-            results, row, col = self.translate_to_local(index.row(), index.column())
+            row = index.row()
+            col = index.column()
             try:
-                value = results.data.iloc[row][col]
-                column_type = results.data.dtypes[col]
+                value = self.df.iloc[row][col]
+                column_type = self.df.dtypes[col]
                 # Cast to column type
-                value_render = column_type.type(value)
+                value_render = column_type.type(value) #???
             except IndexError:
-                value = NaN
+                value = pd.NA #NaN
+
+            if pd.isna(value):
                 value_render = ""
             if isinstance(value_render, float64):
                 # limit maximum number of decimal digits displayed
-                value_render = f"{value_render:.{results.float_digits:d}f}"
+                value_render = f"{value_render:.{self.float_digits:d}f}"
 
             if role == QtCore.Qt.ItemDataRole.DisplayRole:
                 return str(value_render)
@@ -171,15 +166,6 @@ class PandasModelBase(QtCore.QAbstractTableModel):
 
         return None
 
-    def _get_new_rows_columns(self, results, r1, c1, r2, c2):
-        new_rows = self.pandas_row_count() - self.row_count
-        new_rows_start = self.row_count
-
-        new_columns = self.pandas_column_count() - self.column_count
-        new_columns_start = self.column_count
-
-        return new_rows, new_rows_start, new_columns, new_columns_start
-
     def headerData(self, section, orientation, role):
         """ Return header information
 
@@ -187,10 +173,10 @@ class PandasModelBase(QtCore.QAbstractTableModel):
         """
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
             if orientation == QtCore.Qt.Orientation.Horizontal:
-                return str(self.horizontal_header[section])
+                return str(self.df.columns[section])
 
             if orientation == QtCore.Qt.Orientation.Vertical:
-                return str(self.vertical_header[section])
+                return str(self.df.index[section])
         elif role == QtCore.Qt.ItemDataRole.DecorationRole:
             if orientation == QtCore.Qt.Orientation.Horizontal:
                 return self.horizontal_header_decoration(section)
@@ -202,176 +188,68 @@ class PandasModelBase(QtCore.QAbstractTableModel):
 
     def _data_changed(self, results, r1, c1, r2, c2):
         """ Internal method to handle data changed signal """
-        rows, rows_start, columns, columns_start = \
-            self._get_new_rows_columns(results, r1, c1, r2, c2)
-        if rows or columns:
-            if rows > 0:
-                # New rows available
-                self.beginInsertRows(QtCore.QModelIndex(),
-                                     rows_start,
-                                     rows_start + rows - 1)
-                self.row_count += rows
-                self.endInsertRows()
+        self.beginResetModel()
+        self.compose_dataframe()
+        self.endResetModel()
 
-            if columns > 0:
-                # New columns available
-                self.beginInsertColumns(QtCore.QModelIndex(),
-                                        columns_start,
-                                        columns_start + columns - 1)
-                self.column_count += columns
-                self.endInsertColumns()
-        else:
-            top_bottom = self._get_row_column_set(results, r1, c1, r2, c2)
-            for r1, c1, r2, c2 in top_bottom:
-                self.dataChanged.emit(self.createIndex(r1, c1),
-                                      self.createIndex(r2, c2))
+    def _color_changed(self, results, color):
+        self.header_decoration = {}
 
-    def pandas_row_count(self):
-        """ Return total row count of the panda dataframes
+    def update_dataframe(self, df):
+        self.df = self.df.join(df, how='outer').convert_dtypes().dropna(how='all')
 
-        The value depends on the geometry selected to display dataframes
-        """
+    def compose_dataframe(self):
+        """ Compose a pandas dataframe from a list of dataframes """
         raise Exception("Subclass should implement it")
-
-    def pandas_column_count(self):
-        """ Return total column count of the panda dataframes
-
-        The value depends on the geometry selected to display dataframes
-        """
-        raise Exception("Subclass should implement it")
-
-    def _get_row_column_set(self, results, r1, c1, r2, c2):
-        """ Return set of top/bottom coordinates for data changed event.
-
-        Depending on the geometry of the table a single top/bottom could be
-        translated in multiple tops/bottoms
-        """
-        raise Exception("Subclass should implement it")
-
-    def translate_to_local(self, row, col):
-        """ Translate from full table coordinate to single results coordinates """
-        raise Exception("Subclass should implement it")
-
-    def translate_to_global(self, results, row, col):
-        """ Translate from single results coordinates to full table coordinates """
-        raise Exception("Subclass should implement it")
-
-    @property
-    def horizontal_header(self):
-        raise Exception("Subclass should implement it")
-
-    @property
-    def vertical_header(self):
-        return range(self.row_count)
 
     def horizontal_header_decoration(self, section):
         return None
 
     def vertical_header_decoration(self, section):
         return None
+
+class PandasModelByColumn(PandasModelBase):
+    def compose_dataframe(self):
+        if self.results_list:
+            self.df = pd.concat((r.data for r in self.results_list), axis=1, copy=False).fillna(pd.NA)
+        else:
+            self.df = pd.DataFrame()
+        return self.df
+
+    def horizontal_header_decoration(self, section):
+        if not section in self.header_decoration:
+            df_hdec = []
+            for r in self.results_list:
+                df_hdec += [r.color]*r.columns
+                if len(df_hdec) > section:
+                    break
+            pixelmap = QtGui.QPixmap(6, 6)
+            pixelmap.fill(df_hdec[section])
+            self.header_decoration[section] = pixelmap
+        return self.header_decoration[section]
 
 
 class PandasModelByRow(PandasModelBase):
-    def pandas_row_count(self):
-        rows = 0
-        for r in self.results_list:
-            rows += r.rows
-        return rows
-
-    def pandas_column_count(self):
-        cols = 0
+    def compose_dataframe(self):
         if self.results_list:
-            cols = self.results_list[0].columns
-        return cols
-
-    def _get_row_column_set(self, results, r1, c1, r2, c2):
-        top = self.translate_to_global(results, r1, c1)
-        bottom = self.translate_to_global(results, r2, c2)
-        return (top + bottom),
-
-    def translate_to_local(self, row, col):
-        """ Translate from full table coordinate to single results coordinates """
-        for index, results in enumerate(self.results_list):
-            if row < results.rows:
-                break
-            row -= results.rows
-        return results, row, col
-
-    def translate_to_global(self, results, row, col):
-        """ Translate from single results coordinates to full table coordinates """
-        rows = 0
-        for res in self.results_list:
-            if res == results:
-                break
-            rows += results.rows
-        return rows + row, col
-
-    @property
-    def horizontal_header(self):
-        if self.results_list:
-            return self.results_list[0].data.columns
+            self.df = pd.concat((r.data for r in self.results_list),
+                                axis=0,
+                                ignore_index=(self.column_index is None))
         else:
-            return []
+            self.df = pd.DataFrame()
+        return self.df
 
     def vertical_header_decoration(self, section):
-        results, _, _ = self.translate_to_local(section, 0)
-        pixelmap = QtGui.QPixmap(6, 6)
-        pixelmap.fill(results.color)
-        return pixelmap
-
-
-class PandasModelByColumn(PandasModelBase):
-    def pandas_row_count(self):
-        return max([0] + [r.rows for r in self.results_list])
-
-    def pandas_column_count(self):
-        cols = 0
-        size = len(self.results_list)
-        if size > 0:
-            cols = self.results_list[0].columns * size
-        return cols
-
-    def _get_row_column_set(self, results, r1, c1, r2, c2):
-        top_bottoms = []
-        for i in range(c1, c2 + 1):
-            top = self.translate_to_global(results, r1, i)
-            bottom = self.translate_to_global(results, r2, i)
-            top_bottoms.append(top + bottom)
-
-        return top_bottoms
-
-    def translate_to_local(self, row, col):
-        """ Translate from full table coordinate to single results coordinates """
-        columns = 0
-        for index, results in enumerate(self.results_list):
-            if col < (columns + results.columns):
-                break
-            columns += results.columns
-        return results, row, col - columns
-
-    def translate_to_global(self, results, row, col):
-        """ Translate from single results coordinates to full table coordinates """
-        columns = 0
-        for res in self.results_list:
-            if res == results:
-                break
-            columns += results.columns
-        return row, col + columns
-
-    @property
-    def horizontal_header(self):
-        size = len(self.results_list)
-        if size:
-            v = list(self.results_list[0].data.columns)
-            return v * size
-        else:
-            return []
-
-    def horizontal_header_decoration(self, section):
-        results, _, _ = self.translate_to_local(0, section)
-        pixelmap = QtGui.QPixmap(6, 6)
-        pixelmap.fill(results.color)
-        return pixelmap
+        if not section in self.header_decoration:
+            df_dec = []
+            for r in self.results_list:
+                df_dec += [r.color]*r.rows
+                if len(df_dec) > section:
+                    break
+            pixelmap = QtGui.QPixmap(6, 6)
+            pixelmap.fill(df_dec[section])
+            self.header_decoration[section] = pixelmap
+        return self.header_decoration[section]
 
 
 class Table(QtWidgets.QTableView):
@@ -391,13 +269,13 @@ class Table(QtWidgets.QTableView):
     }
 
     def __init__(self, refresh_time=0.2, check_status=True,
-                 force_reload=False, by_column=True, parent=None):
+                 force_reload=False, by_column=True, column_index=None, parent=None):
         super().__init__(parent)
         self.force_reload = force_reload
         if by_column:
-            model = PandasModelByColumn()
+            model = PandasModelByColumn(column_index=column_index)
         else:
-            model = PandasModelByRow()
+            model = PandasModelByRow(column_index=column_index)
 
         self.setModel(model)
         self.horizontalHeader().setStyleSheet("font: bold;")
@@ -432,24 +310,8 @@ class Table(QtWidgets.QTableView):
             model = self.model()
         return model
 
-    def composed_dataframe(self):
-        """ Create single pandas dataframe out of the dataframe list """
-        model = self.source_model()
-
-        df_list = [results.data for results in model.results_list]
-        if not df_list:  # Empty list
-            df = None
-        elif isinstance(model, PandasModelByRow):
-            # Concatenate pandas data frames
-            df = pd.concat(df_list, axis=0).replace(to_replace=NaN, value="")
-        else:
-            # Concatenate pandas data frames
-            df = pd.concat(df_list, axis=1).replace(to_replace=NaN, value="")
-
-        return df
-
     def export_action(self):
-        df = self.composed_dataframe()
+        df = self.source_model().df
 
         if df is not None:
             formats = ";;".join(self.supported_formats.keys())
@@ -521,11 +383,12 @@ class TableWidget(TabWidget, QtWidgets.QWidget):
     """
     float_digits = 6
 
-    def __init__(self, name, columns, by_column=True, refresh_time=0.2,
+    def __init__(self, name, columns, column_index=None, by_column=True, refresh_time=0.2,
                  check_status=True, parent=None):
         super().__init__(name, parent)
         self.columns = columns
         self.by_column = by_column
+        self.column_index = column_index
         self.refresh_time = refresh_time
         self.check_status = check_status
         self._setup_ui()
@@ -536,7 +399,9 @@ class TableWidget(TabWidget, QtWidgets.QWidget):
                            check_status=self.check_status,
                            force_reload=False,
                            by_column=self.by_column,
-                           parent=self)
+                           #column_index=self.column_index,
+                           parent=self,
+                           )
 
     def _layout(self):
         vbox = QtWidgets.QVBoxLayout(self)
@@ -546,7 +411,7 @@ class TableWidget(TabWidget, QtWidgets.QWidget):
         self.setLayout(vbox)
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
-        ret = ResultsTable(results, color, self.float_digits, wdg=self, **kwargs)
+        ret = ResultsTable(results, color, self.column_index, wdg=self, **kwargs)
         return ret
 
     def load(self, table):
