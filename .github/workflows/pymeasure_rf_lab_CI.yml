@@ -57,14 +57,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install build
-        run: python -m pip install build
-
       # Used to host cibuildwheel
       - uses: actions/setup-python@v2
 
       - name: Build wheels
-        run: python -m build
+        run: |
+          python -m pip install --user --upgrade build
+          python -m build
 
       - uses: actions/upload-artifact@v3
         with:
