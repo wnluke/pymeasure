@@ -58,9 +58,6 @@ master_doc = 'index'
 project = 'PyMeasure'
 copyright = '2013-2022, PyMeasure Developers'
 
-from pymeasure._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
