@@ -34,10 +34,12 @@ from .plot_frame import PlotFrame
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 class MultiResultsCurve(dict):
     def __getattr__(self, name):
         if name == "wdg":
             return list(self.values())[0].wdg
+
 
 class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):
