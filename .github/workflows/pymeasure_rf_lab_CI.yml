@@ -56,7 +56,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: Check out src from Git
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Build wheels
         run: |
