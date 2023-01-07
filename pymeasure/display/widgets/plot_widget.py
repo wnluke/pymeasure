@@ -34,6 +34,7 @@ from .plot_frame import PlotFrame
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 class MultiResultsCurve(dict):
     def __getattr__(self, name):
         if name == "wdg":
@@ -41,6 +42,7 @@ class MultiResultsCurve(dict):
         elif name == "color":
             return list(self.values())[0].color
         return super().__getattr__(name)
+
 
 class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):

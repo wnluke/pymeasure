@@ -54,7 +54,7 @@ class PlotFrame(QtWidgets.QFrame):
         self._setup_ui()
         self.change_x_axis(x_axis)
         if isinstance(y_axis, str):
-            y_axis = [y_axis,]
+            y_axis = [y_axis]
         self.change_y_axis(y_axis)
 
     def _setup_ui(self):
