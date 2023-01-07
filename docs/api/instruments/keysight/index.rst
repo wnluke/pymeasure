@@ -12,4 +12,5 @@ This section contains specific documentation on the keysight instruments that ar
    keysightDSOX1102G
    keysightN5767A
    keysightN7776C
+   keysightE36312A
    keysightP5003A
