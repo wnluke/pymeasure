@@ -55,18 +55,16 @@ jobs:
       CI_COMMIT_AUTHOR: Michele Sardo
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
-
-      # Used to host cibuildwheel
-      - uses: actions/setup-python@v3
+      - name: Check out src from Git
+      - uses: actions/checkout@v2
 
       - name: Build wheels
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+	  git branch
           python -m pip install --user --upgrade build setuptools_scm
           python -c "import setuptools_scm;print(setuptools_scm.get_version())"
-          #python -c "from importlib.metadata import version;print(version('pymeasure'))"	  
           python -m build
 
       - uses: actions/upload-artifact@v3
