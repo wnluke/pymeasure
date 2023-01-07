@@ -69,15 +69,19 @@ class KeysightP5003A(SpectrumAnalyzer):
     average_type_get_command = "SENSe:SA:BANDwidth:VIDeo:AVER:TYPE?;"
     average_type_set_command = "SENSe:SA:BANDwidth:VIDeo:AVER:TYPE %s;"
 
-    def __init__(self, resourceName, **kwargs):
+    def __init__(self, resourceName, port='A', **kwargs):
         super().__init__(
             resourceName,
             "Keysight P5003A Spectrum Analyzer",
             **kwargs
         )
+        self.port = port
+        self.enable_sa(self.port)
+
+    def enable_sa(self, port):
         """ Enable Spectrum Analysis """
         self.write("CALCulate1:MEASure1:DELete")
-        self.write("CALCulate:MEASure:DEFine 'a1:Spectrum Analyzer'")
+        self.write(f"CALCulate:MEASure:DEFine '{port}:Spectrum Analyzer'")
         self.write("DISP:MEAS:FEED 1")
 
     def trace(self, number=1):
@@ -94,7 +98,4 @@ class KeysightP5003A(SpectrumAnalyzer):
 
     def reset(self):
         super().reset()
-        """Reset disables Spectrum Analysis"""
-        self.write("CALCulate1:MEASure1:DELete")
-        self.write("CALCulate:MEASure:DEFine 'a1:Spectrum Analyzer'")
-        self.write("DISP:MEAS:FEED 1")
+        self.enable_sa(self.port)
