@@ -21,36 +21,53 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
-
 from pymeasure.test import expected_protocol
+from pymeasure.instruments.siglenttechnologies.siglent_spd1305x import SPD1305X
 
-from pymeasure.instruments.hp import HP8657B
 
-
-def test_frequency():
+def test_set_current():
     with expected_protocol(
-            HP8657B,
-            [(b"FR 1234567890 HZ", None),
-             (b"FR   12345678 HZ", None)],
-    ) as instr:
-        instr.frequency = 1.23456789e9
-        instr.frequency = 1.2345678e7
+        SPD1305X,
+        [("CH1:CURR 0.5", None),
+         ("CH1:CURR?", "0.5")]
+    ) as inst:
+        inst.ch_1.current_limit = 0.5
+        assert inst.ch_1.current_limit == 0.5
 
 
-def test_level():
+def test_set_current_trunc():
     with expected_protocol(
-            HP8657B,
-            [(b"AP -123.4 DM", None)],
-    ) as instr:
-        instr.level = -123.4
+        SPD1305X,
+        [("CH1:CURR 5", None),
+         ("CH1:CURR?", "5")]
+    ) as inst:
+        inst.ch_1.current_limit = 10  # too large, gets truncated
+        assert inst.ch_1.current_limit == 5
 
 
-def test_output():
+def test_set_voltage():
     with expected_protocol(
-            HP8657B,
-            [(b"R3", None),
-             (b"R2", None)],
-    ) as instr:
-        instr.output_enabled = True
-        instr.output_enabled = False
+        SPD1305X,
+        [("CH1:VOLT 0.5", None),
+         ("CH1:VOLT?", "0.5")]
+    ) as inst:
+        inst.ch_1.voltage_setpoint = 0.5
+        assert inst.ch_1.voltage_setpoint == 0.5
+
+
+def test_set_voltage_trunc():
+    with expected_protocol(
+        SPD1305X,
+        [("CH1:VOLT 30", None),
+         ("CH1:VOLT?", "30")]
+    ) as inst:
+        inst.ch_1.voltage_setpoint = 35  # too large, gets truncated
+        assert inst.ch_1.voltage_setpoint == 30
+
+
+def test_configure_timer():
+    with expected_protocol(
+        SPD1305X,
+        [("TIME:SET CH1,1,5.001,5.000,30", None)]
+    ) as inst:
+        inst.ch_1.configure_timer(1, 5.001, 8.55, 30)
