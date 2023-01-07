@@ -62,7 +62,7 @@ jobs:
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-	  git branch
+          git branch
           python -m pip install --user --upgrade build setuptools_scm
           python -c "import setuptools_scm;print(setuptools_scm.get_version())"
           python -m build
