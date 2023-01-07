@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+from pymeasure.instruments.instrument import Instrument
 from pymeasure.instruments.siglenttechnologies.siglent_spdbase import (SPDSingleChannelBase,
                                                                        SPDChannel)
 
@@ -29,6 +30,12 @@ class SPD1305X(SPDSingleChannelBase):
     """Represent the Siglent SPD1305X Power Supply.
     """
 
+    voltage_range = [0, 30]
+    current_range = [0, 5]
+    channels = Instrument.ChannelCreator(SPDChannel, 1,
+                                         voltage_range=voltage_range,
+                                         current_range=current_range)
+
     def __init__(self, adapter, **kwargs):
 
         super().__init__(
@@ -36,10 +43,6 @@ class SPD1305X(SPDSingleChannelBase):
             name="Siglent Technologies SPD1305X Power Supply",
             **kwargs
         )
-        voltage_limits = [0, 30]
-        current_limits = [0, 5]
 
-        self.ch[1] = SPDChannel(self, 1, voltage_limits, current_limits)
-
-        self.ch[1].voltage_setpoint_values = voltage_limits
-        self.ch[1].current_limit_values = current_limits
+        self.ch_1.voltage_setpoint_values = self.voltage_range
+        self.ch_1.current_limit_values = self.current_range

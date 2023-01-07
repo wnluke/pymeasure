@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -85,9 +85,11 @@ class VISAAdapter(Adapter):
 
     def __init__(self, resource_name, visa_library='', preprocess_reply=None,
                  query_delay=0, log=None, **kwargs):
-        super().__init__(preprocess_reply=preprocess_reply, log=log, query_delay=query_delay)
+        super().__init__(preprocess_reply=preprocess_reply, log=log)
         if query_delay:
             warn("Implement in Instrument's 'wait_until_read' instead.", FutureWarning)
+            kwargs.setdefault("query_delay", query_delay)
+        self.query_delay = query_delay
         if isinstance(resource_name, ProtocolAdapter):
             self.connection = resource_name
             self.connection.write_raw = self.connection.write_bytes

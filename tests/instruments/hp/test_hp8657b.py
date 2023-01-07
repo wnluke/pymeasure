@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,11 @@ from pymeasure.instruments.hp import HP8657B
 def test_frequency():
     with expected_protocol(
             HP8657B,
-            [(b"FR 1234567890.0 HZ", None),
-             (b"FR 12345678.9 HZ", None)],
+            [(b"FR 1234567890 HZ", None),
+             (b"FR   12345678 HZ", None)],
     ) as instr:
         instr.frequency = 1.23456789e9
-        instr.frequency = 1.23456789e7
+        instr.frequency = 1.2345678e7
 
 
 def test_level():
