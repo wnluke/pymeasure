@@ -62,9 +62,11 @@ jobs:
 
       - name: Build wheels
         run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           python -m pip install --user --upgrade build setuptools_scm
           python -c "import setuptools_scm;print(setuptools_scm.get_version())"
-          python -c "from importlib.metadata import version;print(version('pymeasure'))"	  
+          #python -c "from importlib.metadata import version;print(version('pymeasure'))"	  
           python -m build
 
       - uses: actions/upload-artifact@v3
