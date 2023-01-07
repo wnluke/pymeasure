@@ -77,8 +77,8 @@ class KeysightP5003A(SpectrumAnalyzer):
         )
         self.port = port
         self.enable_sa(self.port)
-    
-    def enable_sa(self,port):
+
+    def enable_sa(self, port):
         """ Enable Spectrum Analysis """
         self.write("CALCulate1:MEASure1:DELete")
         self.write(f"CALCulate:MEASure:DEFine '{port}:Spectrum Analyzer'")
