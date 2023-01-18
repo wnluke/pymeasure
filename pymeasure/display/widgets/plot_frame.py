@@ -87,7 +87,7 @@ class PlotFrame(QtWidgets.QFrame):
                                                   style=QtCore.Qt.PenStyle.DashLine))
         self.crosshairs.coordinates.connect(self.update_coordinates)
 
-        self.timer = QtCore.QTimer()
+        self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update_curves)
         self.timer.timeout.connect(self.crosshairs.update)
         self.timer.timeout.connect(self.updated)
@@ -137,7 +137,7 @@ class PlotFrame(QtWidgets.QFrame):
         for axis in axis_list:
             label, units = self.parse_axis(axis)
             label_list.append(label)
-        label = ",".join(label_list)
+        label = ", ".join(label_list)
         self.plot.setLabel('left', label, units=units, **self.LABEL_STYLE)
         self.y_axis = axis_list
         self.y_axis_changed.emit(list(axis_list))

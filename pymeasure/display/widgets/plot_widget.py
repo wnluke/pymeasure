@@ -43,6 +43,13 @@ class MultiResultsCurve(dict):
             return list(self.values())[0].color
         return super().__getattr__(name)
 
+    def update_data(self):
+        for item in self.values():
+            item.update_data()
+
+    def set_color(self, color):
+        for item in self.values():
+            item.set_color(color)
 
 class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):
@@ -286,21 +293,8 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
 class PlotPreviewWidget(PlotWidget):
     """ Class variant intended to be used during preview """
 
-    name = "Plot preview"
-
     def preview_update(self, results):
         """ Update the preview widget """
         self.plot.clear()
-        curve = ResultsCurve(results,
-                             x=self.plot_frame.x_axis,
-                             y=self.plot_frame.y_axis,
-                             # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
-                             # circumvent plotting slowdown. Once the issue
-                             # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
-                             # it can be reverted
-                             pen=pg.mkPen(color=(255, 0, 0), width=1),
-                             antialias=True
-                             )
-        curve.update_data()
-
-        self.plot.addItem(curve)
+        curve = self.new_curve(results, antialias=True)
+        self.load(curve)
