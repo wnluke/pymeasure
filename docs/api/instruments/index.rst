@@ -59,6 +59,7 @@ Instruments by manufacturer:
    srs/index
    stmicroelectronics/index
    tektronix/index
+   teledyne/index
    temptronic/index
    texio/index
    thermotron/index
