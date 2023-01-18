@@ -51,6 +51,7 @@ class MultiResultsCurve(dict):
         for item in self.values():
             item.set_color(color)
 
+
 class CheckableComboBox(QtWidgets.QComboBox):
     def __init__(self):
         super(CheckableComboBox, self).__init__()
