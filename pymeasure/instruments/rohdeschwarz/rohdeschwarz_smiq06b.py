@@ -158,7 +158,7 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
                 value = sum([1 << (i - 1) for i in markers])
             else:
                 value = markers
-            assert(value <= 15)
+            assert value <= 15
             if (i % 2):
                 value_byte |= value
                 data.append(value_byte)

@@ -183,7 +183,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
             markers = list(set(markers))
             # Compute value
             value = sum([1 << (i - 1) for i in markers])
-            assert(value <= 15)
+            assert value <= 15
             if (i % 2):
                 value_byte |= value
                 data.append(value_byte)

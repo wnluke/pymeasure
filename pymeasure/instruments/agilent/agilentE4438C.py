@@ -65,7 +65,8 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
 
     custom_modulation = Instrument.control(
         ":RADio:CUSTom:MODulation?", ":RADio:CUSTom:MODulation %s",
-        """ A string property that allow to set and read the modulation type for the Custom personality
+        """ A string property that allow to set and read the modulation type
+        for the Custom personality
         This property can be set. """,
         validator=strict_discrete_set,
         values=RFSignalGeneratorDM.MODULATION_TYPES
@@ -155,7 +156,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
                 value = sum([1 << (i - 1) for i in markers])
             else:
                 value = markers
-            assert(value <= 15)
+            assert value <= 15
             data.append(value)
         return data
 
@@ -182,7 +183,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         self.write(f':SOURce:RADio:ARB:SEQ "SEQ:{name:s}",' + parameters)
         # After previous command, we always get a missing parameters error
         error = self.values("SYST:ERR?")
-        assert(error[0] == -109)
+        assert error[0] == -109
         self.write(f":SOURce:RADio:ARB:SCLock:RATE {sampling_rate:d}")
         # Select sequence
         self.write(f':SOURce:RADio:ARB:WAVeform "SEQ:{name:s}"')

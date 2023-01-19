@@ -101,7 +101,8 @@ Generate a tone at 868MHz:
 
     alc = Instrument.control(
         ":SOURCE:POWER:ALC?;", ":SOURCE:POWER:ALC %s;",
-        """ A boolean property that enables or disables the automatic leveling control (ALC) circuit.
+        """ A boolean property that enables or disables the automatic leveling
+        control (ALC) circuit.
         This property can be set.
         """,
         validator=strict_discrete_set,
