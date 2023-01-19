@@ -42,15 +42,17 @@ class GLM1007(Instrument):
                                     """,
                                     )
 
-    disconnect_all = Instrument.setting("ROUTE:OPEN:ALL",
-                                        """ A `string` property to disable all the RF switch connection.
-                                        """,
-                                        )
+    disconnect_all = Instrument.setting(
+        "ROUTE:OPEN:ALL",
+        """ A `string` property to disable all the RF switch connection.
+        """,
+    )
 
-    att_table_start_frequency = Instrument.measurement("ROUTE:ATTenuation:FREQuency:START?",
-                                                       """ Read the start frequency for the attenuation table.
-                                                       The unit is Hz.""",
-                                                       )
+    att_table_start_frequency = Instrument.measurement(
+        "ROUTE:ATTenuation:FREQuency:START?",
+        """ Read the start frequency for the attenuation table.
+        The unit is Hz.""",
+    )
 
     att_table_step_frequency = \
         Instrument.measurement(
