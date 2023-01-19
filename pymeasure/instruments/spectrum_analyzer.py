@@ -95,7 +95,8 @@ Single sweep acquisition and peak value calculation
 
     resolution_bw = Instrument.control(
         ":SENSe:BANDwidth?;", ":SENSe:BANDwidth %d Hz;",
-        """ A floating point property that represents the instrument resolution bandwidth (RBW) in Hz.
+        """ A floating point property that represents the instrument resolution
+        bandwidth (RBW) in Hz.
         This property can be set.
         """,
         validator=truncated_range,
