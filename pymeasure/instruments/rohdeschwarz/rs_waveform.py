@@ -29,7 +29,7 @@ class GenericTag(object):
 
     def __init__(self, **kwargs):
         # name must always be there
-        assert('name' in kwargs)
+        assert 'name' in kwargs
         name = kwargs['name']
         del kwargs['name']
         if isinstance(name, bytes):
@@ -221,7 +221,7 @@ class WaveformTag(BinaryTag):
             val = struct.unpack("<I", struct.pack("<hh", i, q))[0]
             result = (result ^ val)
 
-        return(result)
+        return result
 
 
 class EmptyTag(BinaryTag):
@@ -304,7 +304,7 @@ class DateTag(GenericTag):
             date = date.decode()
         if isinstance(date, str):
             date = dt.strptime(date, self.date_format)
-        assert(isinstance(date, dt))
+        assert isinstance(date, dt)
         super().__init__(name=name, date=date)
 
     def to_info_date(self):
@@ -329,7 +329,7 @@ class SegmentTag(GenericTag):
                 except ValueError:
                     pass
 
-        assert(isinstance(listvalue, list))
+        assert isinstance(listvalue, list)
         super().__init__(name=name, listvalue=listvalue)
 
     def to_file_text_listvalue(self):
@@ -391,7 +391,7 @@ class RSGenerator(object):
 
     def generate(self, stream):
         # Checks on tags
-        assert(isinstance(self.tag_list[-1], WaveformTag))
+        assert isinstance(self.tag_list[-1], WaveformTag)
 
         if not isinstance(self.tag_list[0], TypeTag):
             self.tag_list.insert(0, TypeTag(name="TYPE", magic="SMU-WV", checksum=0))
