@@ -106,7 +106,7 @@ class TestXAxis:
 
         for angle in range(0, 360):
             self.x.angle = angle
-            assert(self.x.angle == pytest.approx(angle, abs=5e-3))
+            assert self.x.angle == pytest.approx(angle, abs=5e-3)
 
     def test_zero_steps(self):
         assert (self.x.angle_rel(0) == 0)
@@ -149,7 +149,7 @@ class TestRoll:
 
         for angle in range(0, 360):
             self.y.angle = angle
-            assert(self.y.angle == pytest.approx(angle, abs=5e-3))
+            assert self.y.angle == pytest.approx(angle, abs=5e-3)
 
     def test_zero_steps(self):
         assert (self.y.angle_rel(0) == 0)
@@ -177,7 +177,7 @@ class TestXAxisWithRoll:
         for angle in range(-3600, 3600, 5):
             i *= -1
             self.x.angle = angle*i
-            assert(abs(self.x.angle) <= 180)
+            assert abs(self.x.angle) <= 180
 
     def test_step_are_reversable(self):
         for angle in range(0, 360, 5):
@@ -191,7 +191,7 @@ class TestXAxisWithRoll:
 
         for angle in range(0, 180):
             self.x.angle = angle
-            assert(self.x.angle == pytest.approx(angle, abs=5e-3))
+            assert self.x.angle == pytest.approx(angle, abs=5e-3)
 
     def test_zero_steps(self):
         assert (self.x.angle_rel(0) == 0)
@@ -327,7 +327,7 @@ class TestYAxis:
         self.y.set_zero()
         for angle in range(-45, 45):
             self.y.angle = angle
-            assert(self.y.angle == pytest.approx(angle, abs=5e-3))
+            assert self.y.angle == pytest.approx(angle, abs=5e-3)
 
     def test_step_are_reversable(self):
         for angle in range(-45, 46, 1):
