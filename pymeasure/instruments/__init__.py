@@ -41,6 +41,7 @@ from . import attocube
 from . import danfysik
 from . import deltaelektronika
 from . import diamondengineering
+from . import edwards
 from . import eurotest
 from . import fluke
 from . import fwbell
