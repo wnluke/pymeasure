@@ -130,7 +130,7 @@ class Axis(object):
 
     def __init__(self, instrument, axis_name, wrap):
         self.instrument = instrument
-        assert((axis_name == 'X') or (axis_name == 'Y'))
+        assert (axis_name == 'X') or (axis_name == 'Y')
         self.axis = axis_name
         self.zero_set = False
         self.current_angle = None
@@ -314,10 +314,10 @@ Picture details are as follow:
 
         # Check limits if any
         if self.angle_min is not None:
-            assert((angle+degrees) >= self.angle_min)
+            assert (angle+degrees) >= self.angle_min
 
         if self.angle_max is not None:
-            assert((angle+degrees) <= self.angle_max)
+            assert (angle+degrees) <= self.angle_max
 
         angle_rad = radians(angle)
         # Calculate current x and y coordinates from current_angle
