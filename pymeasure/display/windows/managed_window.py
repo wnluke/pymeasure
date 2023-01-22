@@ -44,7 +44,7 @@ from ..widgets import (
     EstimatorWidget,
 )
 from ...experiment import Results, Procedure
-from ..curves import ResultsCurve
+from ..curves import ResultsCurve, MultiResultsCurve
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -400,7 +400,7 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
                 else:
                     results = Results.load(filename)
                     experiment = self.new_experiment(results)
-                    for curve in experiment.curve_list[0].values():
+                    for curve in experiment.curve_list:
                         if curve:
                             curve.update_data()
                     experiment.browser_item.progressbar.setValue(100)
@@ -465,11 +465,9 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
 
         curve_color = pg.intColor(0)
         for curve in curve_list:
-            if curve:
-                for i_curve in curve.values():
-                    if isinstance(i_curve, ResultsCurve):
-                        curve_color = i_curve.opts['pen'].color()
-                        break
+            if curve and isinstance(curve, (ResultsCurve, MultiResultsCurve)):
+                curve_color = curve.opts['pen'].color()
+                break
 
         browser_item = BrowserItem(results, curve_color)
         return Experiment(results, curve_list, browser_item)

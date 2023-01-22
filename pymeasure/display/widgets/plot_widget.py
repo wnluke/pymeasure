@@ -26,7 +26,7 @@ import logging
 
 import pyqtgraph as pg
 
-from ..curves import ResultsCurve
+from ..curves import ResultsCurve, MultiResultsCurve
 from ..Qt import QtCore, QtWidgets, QtGui
 from .tab_widget import TabWidget
 from .plot_frame import PlotFrame
@@ -35,15 +35,9 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class MultiResultsCurve(dict):
-    def __getattr__(self, name):
-        if name == "wdg":
-            return list(self.values())[0].wdg
-
-
 class CheckableComboBox(QtWidgets.QComboBox):
-    def __init__(self):
-        super(CheckableComboBox, self).__init__()
+    def __init__(self, parent=None):
+        super(CheckableComboBox, self).__init__(parent)
         self.view().pressed.connect(self.handle_item_pressed)
         self.setModel(QtGui.QStandardItemModel(self))
 
@@ -156,7 +150,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             self.columns_y.setCurrentIndex(self.columns_y.findText(y_list[0]))
             for y in y_list:
                 self.columns_y.set_check_state(y, True)
-            self.plot_frame.change_y_axis(y_list)
+            self.plot_frame.change_y_axis(y_list[0])
 
     def _setup_ui(self):
         self.columns_x_label = QtWidgets.QLabel(self)
@@ -167,7 +161,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
         self.columns_y_label.setText('Y Axis:')
 
         self.columns_x = QtWidgets.QComboBox(self)
-        self.columns_y = CheckableComboBox()
+        self.columns_y = CheckableComboBox(self)
         for column in self.columns:
             self.columns_x.addItem(column)
             self.columns_y.addItem(column)
@@ -181,7 +175,6 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             self.check_status
         )
         self.updated = self.plot_frame.updated
-        self.plot = self.plot_frame.plot
         self.columns_x.setCurrentIndex(0)
         self.columns_y.setCurrentIndex(1)
 
@@ -205,33 +198,18 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
         return QtCore.QSize(300, 600)
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
-        styles = (QtCore.Qt.PenStyle.SolidLine,
-                  QtCore.Qt.PenStyle.DashLine,
-                  QtCore.Qt.PenStyle.DotLine,
-                  QtCore.Qt.PenStyle.DashDotLine,
-                  QtCore.Qt.PenStyle.DashDotDotLine)
-        need_pen = False
         if 'pen' not in kwargs:
-            need_pen = True
+            kwargs['pen'] = pg.mkPen(color=color, width=self.linewidth)
         if 'antialias' not in kwargs:
             kwargs['antialias'] = False
-
-        curve = MultiResultsCurve()
-        for index, column in enumerate(self.columns):
-            if need_pen:
-                kwargs['pen'] = pg.mkPen(color=color,
-                                         width=self.linewidth,
-                                         style=styles[index % len(styles)],
-                                         )
-            curve[column] = ResultsCurve(results,
-                                         wdg=self,
-                                         x=self.plot_frame.x_axis,
-                                         y=column,
-                                         **kwargs
-                                         )
-            curve[column].setSymbol(None)
-            curve[column].setSymbolBrush(None)
-
+        curve = MultiResultsCurve(results,
+                                  wdg=self,
+                                  x=self.plot_frame.x_axis,
+                                  y=self.plot_frame.y_axis,
+                                  **kwargs
+                                  )
+        curve.setSymbol(None)
+        curve.setSymbolBrush(None)
         return curve
 
     def update_x_column(self, index):
@@ -240,16 +218,9 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
 
     def update_y_column(self, index):
         axis = self.columns_y.itemText(index)
-        checked = self.columns_y.item_checked(index)
-        for item in self.plot.items:
-            if isinstance(item, ResultsCurve):
-                if item.y == axis:
-                    if checked:
-                        item.show()
-                    else:
-                        item.hide()
-                    item.update_data()
-        self.plot_frame.change_y_axis(self.columns_y.checked_items())
+        self.plot_frame.change_y_axis(axis,
+                                      self.columns_y.item_checked(index),
+                                      self.columns_y.checked_items())
 
     def load(self, curve):
         # Add new set of curves
@@ -258,17 +229,16 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             i_curve.x = self.columns_x.currentText()
             i_curve.y = self.columns[i]
             i_curve.update_data()
-            self.plot.addItem(i_curve)
+            self.plot_frame.plot.addItem(i_curve)
             if i_curve.y not in checked:
                 i_curve.hide()
                 i_curve.update_data()
 
     def remove(self, curve):
-        for i_curve in curve.values():
-            self.plot.removeItem(i_curve)
+        self.plot_frame.removeItem(curve)
 
     def set_color(self, curve, color):
         """ Change the color of the pen of the curve """
         for i_curve in curve.values():
             i_curve.pen.setColor(color)
-            i_curve.updateItems(styleUpdate=True)
+        curve.updateItems(styleUpdate=True)

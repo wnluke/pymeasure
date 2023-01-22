@@ -121,10 +121,9 @@ class ResultsDialog(QtWidgets.QFileDialog):
             for i_curve in curve.values():
                 checked = self.plot_widget.columns_y.checked_items()
                 self.plot.addItem(i_curve)
-                i_curve.update_data()
                 if i_curve.y not in checked:
                     i_curve.hide()
-                    i_curve.update_data()
+                i_curve.update_data()
 
             self.preview_param.clear()
             for key, param in results.procedure.parameter_objects().items():

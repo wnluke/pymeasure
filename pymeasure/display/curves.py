@@ -32,6 +32,55 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
+class MultiResultsCurve(dict):
+    def __init__(self, results, x, y, force_reload=False, wdg=None, **kwargs):
+        styles = (QtCore.Qt.PenStyle.SolidLine,
+                  QtCore.Qt.PenStyle.DashLine,
+                  QtCore.Qt.PenStyle.DotLine,
+                  QtCore.Qt.PenStyle.DashDotLine,
+                  QtCore.Qt.PenStyle.DashDotDotLine)
+        super().__init__()
+        for index, column in enumerate(wdg.columns):
+            pen = kwargs['pen']
+            style = styles[index % len(styles)]
+            kwargs['pen'] = pg.mkPen(color=pen.color(), width=pen.width(), style=style)
+            self[column] = ResultsCurve(results,
+                                        wdg=wdg,
+                                        x=wdg.plot_frame.x_axis,
+                                        y=column,
+                                        **kwargs
+                                        )
+
+    def __getattr__(self, name):
+        if name == "wdg":
+            return list(self.values())[0].wdg
+        elif name == "color":
+            return list(self.values())[0].color
+        elif name == "opts":
+            return list(self.values())[0].opts
+        return super().__getattr__(name)
+
+    def update_data(self):
+        for item in self.values():
+            item.update_data()
+
+    def set_color(self, color):
+        for item in self.values():
+            item.set_color(color)
+
+    def setSymbol(self, value):
+        for item in self.values():
+            item.setSymbol(value)
+
+    def setSymbolBrush(self, value):
+        for item in self.values():
+            item.setSymbolBrush(value)
+
+    def updateItems(self, *args, **kwargs):
+        for item in self.values():
+            item.setSymbol(*args, **kwargs)
+
+
 class ResultsCurve(pg.PlotDataItem):
     """ Creates a curve loaded dynamically from a file through the Results object. The data can
     be forced to fully reload on each update, useful for cases when the data is changing across
