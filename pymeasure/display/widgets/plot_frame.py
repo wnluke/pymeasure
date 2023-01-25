@@ -27,7 +27,7 @@ import logging
 import re
 import pyqtgraph as pg
 
-from ..curves import ResultsCurve, Crosshairs
+from ..curves import ResultsCurve, MultiResultsCurve, Crosshairs
 from ..Qt import QtCore, QtWidgets
 from ...experiment import Procedure
 
@@ -43,7 +43,7 @@ class PlotFrame(QtWidgets.QFrame):
 
     LABEL_STYLE = {'font-size': '10pt', 'font-family': 'Arial', 'color': '#000000'}
     updated = QtCore.Signal()
-    ResultsClass = ResultsCurve
+    ResultsClass = (ResultsCurve, MultiResultsCurve)
     x_axis_changed = QtCore.Signal(str)
     y_axis_changed = QtCore.Signal(list)
 
@@ -55,7 +55,7 @@ class PlotFrame(QtWidgets.QFrame):
         self.change_x_axis(x_axis)
         if isinstance(y_axis, str):
             y_axis = [y_axis]
-        self.change_y_axis(y_axis)
+        self.change_y_axis(y_axis[0])
 
     def _setup_ui(self):
         self.setAutoFillBackground(False)
@@ -127,7 +127,17 @@ class PlotFrame(QtWidgets.QFrame):
         self.x_axis = axis
         self.x_axis_changed.emit(axis)
 
-    def change_y_axis(self, axis_list):
+    def change_y_axis(self, axis, checked=True, axis_list=None):
+        for item in self.plot.items:
+            if isinstance(item, ResultsCurve):
+                if item.y == axis:
+                    if checked:
+                        item.show()
+                    else:
+                        item.hide()
+                    item.update_data()
+        if axis_list is None:
+            axis_list = [axis]
         label_list = []
         units = None
         for axis in axis_list:
@@ -137,3 +147,9 @@ class PlotFrame(QtWidgets.QFrame):
         self.plot.setLabel('left', label, units=units, **self.LABEL_STYLE)
         self.y_axis = axis_list
         self.y_axis_changed.emit(list(axis_list))
+
+    def removeItem(self, curve):
+        if not isinstance(curve, dict):
+            curve = {"dummy": curve}
+        for i_curve in curve.values():
+            self.plot.removeItem(i_curve)
