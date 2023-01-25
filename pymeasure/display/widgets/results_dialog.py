@@ -63,7 +63,7 @@ class ResultsDialog(QtWidgets.QFileDialog):
 
         self.plot_widget = PlotWidget("Results", self.columns,
                                       self.x_axis, self.y_axis, parent=self)
-        self.plot = self.plot_widget.plot
+        self.plot = self.plot_widget.plot_frame.plot
         self.preview_param = QtWidgets.QTreeWidget()
         param_header = QtWidgets.QTreeWidgetItem(["Name", "Value"])
         self.preview_param.setHeaderItem(param_header)
