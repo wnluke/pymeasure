@@ -48,7 +48,7 @@ class MultiResultsCurve(dict):
 
         for index, column in enumerate(wdg.columns):
             pen = kwargs['pen']
-            style = styles[(index - offset)% len(styles)]
+            style = styles[(index - offset) % len(styles)]
             kwargs['pen'] = pg.mkPen(color=pen.color(), width=pen.width(), style=style)
             self[column] = ResultsCurve(results,
                                         wdg=wdg,
