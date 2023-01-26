@@ -23,7 +23,6 @@
 #
 
 import logging
-
 import numpy as np
 import pyqtgraph as pg
 from .Qt import QtCore, QtGui
@@ -39,10 +38,16 @@ class MultiResultsCurve(dict):
                   QtCore.Qt.PenStyle.DotLine,
                   QtCore.Qt.PenStyle.DashDotLine,
                   QtCore.Qt.PenStyle.DashDotDotLine)
+                  )
         super().__init__()
+
+        # Make sure that first entry selected by user in y is rendered
+        # as solid line
+        offset = wdg.columns.index(y[0])
+
         for index, column in enumerate(wdg.columns):
             pen = kwargs['pen']
-            style = styles[index % len(styles)]
+            style = styles[(index - offset)% len(styles)]
             kwargs['pen'] = pg.mkPen(color=pen.color(), width=pen.width(), style=style)
             self[column] = ResultsCurve(results,
                                         wdg=wdg,
