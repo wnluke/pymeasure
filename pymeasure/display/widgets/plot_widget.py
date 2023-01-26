@@ -26,7 +26,7 @@ import logging
 
 import pyqtgraph as pg
 
-from ..curves import ResultsCurve, MultiResultsCurve
+from ..curves import MultiResultsCurve
 from ..Qt import QtCore, QtWidgets, QtGui
 from .tab_widget import TabWidget
 from .plot_frame import PlotFrame
