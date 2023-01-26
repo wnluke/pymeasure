@@ -23,6 +23,7 @@
 #
 
 import logging
+
 import numpy as np
 import pyqtgraph as pg
 from .Qt import QtCore, QtGui
@@ -37,7 +38,7 @@ class MultiResultsCurve(dict):
                   QtCore.Qt.PenStyle.DashLine,
                   QtCore.Qt.PenStyle.DotLine,
                   QtCore.Qt.PenStyle.DashDotLine,
-                  QtCore.Qt.PenStyle.DashDotDotLine)
+                  QtCore.Qt.PenStyle.DashDotDotLine,
                   )
         super().__init__()
 
