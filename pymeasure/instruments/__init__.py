@@ -68,4 +68,5 @@ from . import temptronic
 from . import thermotron
 from . import thorlabs
 from . import toptica
+from . import velleman
 from . import yokogawa

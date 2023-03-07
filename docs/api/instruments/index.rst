@@ -67,4 +67,5 @@ Instruments by manufacturer:
    thermotron/index
    thorlabs/index
    toptica/index
+   velleman/index
    yokogawa/index
