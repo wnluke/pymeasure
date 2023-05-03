@@ -22,6 +22,7 @@ Instruments by manufacturer:
    activetechnologies/index
    advantest/index
    agilent/index
+   aja/index
    ametek/index
    ami/index
    anaheimautomation/index
@@ -40,6 +41,7 @@ Instruments by manufacturer:
    heidenhain/index
    hcp/index
    hp/index
+   ipgphotonics/index
    keithley/index
    keysight/index
    lakeshore/index
@@ -55,10 +57,13 @@ Instruments by manufacturer:
    siglenttechnologies/index
    signalrecovery/index
    srs/index
+   tcpowerconversion/index
    tektronix/index
+   teledyne/index
    temptronic/index
    texio/index
    thermotron/index
    thorlabs/index
    toptica/index
+   velleman/index
    yokogawa/index

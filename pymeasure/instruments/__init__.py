@@ -31,6 +31,7 @@ from .validators import discreteTruncate
 from . import activetechnologies
 from . import advantest
 from . import agilent
+from . import aja
 from . import ametek
 from . import ami
 from . import anaheimautomation
@@ -49,6 +50,7 @@ from . import fwbell
 from . import hcp
 from . import heidenhain
 from . import hp
+from . import ipgphotonics
 from . import keithley
 from . import keysight
 from . import lakeshore
@@ -64,10 +66,12 @@ from . import rohdeschwarz
 from . import siglenttechnologies
 from . import signalrecovery
 from . import srs
+from . import tcpowerconversion
 from . import tektronix
 from . import temptronic
 from . import texio
 from . import thermotron
 from . import thorlabs
 from . import toptica
+from . import velleman
 from . import yokogawa
