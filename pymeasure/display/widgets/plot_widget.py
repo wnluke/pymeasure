@@ -172,7 +172,8 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             self.columns[0],
             self.columns[1],
             self.refresh_time,
-            self.check_status
+            self.check_status,
+            parent=self,
         )
         self.updated = self.plot_frame.updated
         self.columns_x.setCurrentIndex(0)
@@ -202,12 +203,12 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             kwargs['pen'] = pg.mkPen(color=color, width=self.linewidth)
         if 'antialias' not in kwargs:
             kwargs['antialias'] = False
-        curve = MultiResultsCurve(results,
-                                  wdg=self,
-                                  x=self.plot_frame.x_axis,
-                                  y=self.plot_frame.y_axis,
-                                  **kwargs
-                                  )
+        curve = ResultsCurve(results,
+                             wdg=self,
+                             x=self.plot_frame.x_axis,
+                             y=self.plot_frame.y_axis,
+                             **kwargs,
+                             )
         curve.setSymbol(None)
         curve.setSymbolBrush(None)
         return curve
@@ -243,18 +244,12 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
 
     def preview_widget(self, parent=None):
         """ Return a widget suitable for preview during loading """
-        return PlotPreviewWidget("Results",
-                                 self.columns,
-                                 self.plot_frame.x_axis,
-                                 self.plot_frame.y_axis,
-                                 parent=parent)
+        return PlotWidget("Plot preview",
+                          self.columns,
+                          self.plot_frame.x_axis,
+                          self.plot_frame.y_axis,
+                          parent=parent,
+                          )
 
-
-class PlotPreviewWidget(PlotWidget):
-    """ Class variant intended to be used during preview """
-
-    def preview_update(self, results):
-        """ Update the preview widget """
-        self.plot_frame.plot.clear()
-        curve = self.new_curve(results, antialias=True)
-        self.load(curve)
+    def clear_widget(self):
+        self.plot.clear()
