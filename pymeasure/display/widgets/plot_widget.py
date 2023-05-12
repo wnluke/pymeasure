@@ -203,12 +203,12 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             kwargs['pen'] = pg.mkPen(color=color, width=self.linewidth)
         if 'antialias' not in kwargs:
             kwargs['antialias'] = False
-        curve = ResultsCurve(results,
-                             wdg=self,
-                             x=self.plot_frame.x_axis,
-                             y=self.plot_frame.y_axis,
-                             **kwargs,
-                             )
+        curve = MultiResultsCurve(results,
+                                  wdg=self,
+                                  x=self.plot_frame.x_axis,
+                                  y=self.plot_frame.y_axis,
+                                  **kwargs,
+                                  )
         curve.setSymbol(None)
         curve.setSymbolBrush(None)
         return curve
