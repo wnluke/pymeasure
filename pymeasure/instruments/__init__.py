@@ -65,6 +65,7 @@ from . import srs
 from . import stmicroelectronics
 from . import tcpowerconversion
 from . import tektronix
+from . import teledyne
 from . import temptronic
 from . import thermotron
 from . import thorlabs
