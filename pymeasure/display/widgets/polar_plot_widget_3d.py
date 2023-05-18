@@ -129,7 +129,7 @@ class PolarPlotWidget3D(TabWidget, QtGui.QWidget):
             curve[column] = Results3DMesh(results,
                                          x=self.plot_frame.x_axis,
                                          y=column,
-                                         drawEdges = True,
+                                         drawEdges = False,
                                          **kwargs
                                      )
 
