@@ -108,8 +108,8 @@ class Results3DMesh(GLMeshItem):
             rows = theta_size - 1
             cols = phi_size
             try:
-                # data3d_cart=pc.cartesian_from_spherical(data3d.to_numpy(copy=True))
-                data3d_cart = elaz2abc(data3d['Phi'],data3d['Theta'],data3d['magnitude'])
+                data3d_cart=pc.cartesian_from_spherical(data3d.to_numpy(copy=True))
+                # data3d_cart = elaz2abc(data3d['Phi'],data3d['Theta'],data3d['magnitude'])
                 # data3d_cart = data3d_cart*Rz(-np.pi/2)
                 verts[...,2] = data3d_cart[:,2].reshape(rows+1, cols)
                 verts[...,0] = data3d_cart[:,0].reshape(rows+1, cols)
