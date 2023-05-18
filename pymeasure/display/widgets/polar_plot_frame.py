@@ -136,27 +136,28 @@ class PolarPlot(pg.PlotWidget):
                     
                     if self.scale == False:
                         item.polar_offset = 0
-                        # item.polar_offset = (30)
-                        # print(item.polar_offset)
                     else:
                         item.polar_offset = max(self.scaling,item.polar_offset)
                     
                     item.updateData(phi,radius) # I'm sure item paint method is triggered.
 
                     # Find the polar range and the scaling to apply on the plot to get auto-scaling
-                    polar_range = abs(max(abs(r_max - r_min),(r_max + item.polar_offset)))   
-                    # polar_range = abs(max(30,(r_max + item.polar_offset)))      
+                    polar_range = abs(max(abs(r_max - r_min),(r_max + item.polar_offset)))        
                     if polar_range > max_range:
                         max_range = polar_range
                     
                     scaling = max(abs(r_min),item.polar_offset)
                     if scaling > min_scaling: 
                         min_scaling = scaling
-
+        
         if min_scaling != min_init:
             self.scaling = min_scaling
-        if max_range != max_init:
-            self.outer_circle = max_range
+        if self.scale != False:
+            if max_range > self.outer_circle:
+                self.outer_circle = max_range
+        else:
+            if max_range != max_init:
+                self.outer_circle = max_range
 
         # Refresh the plot if there is something to change
         self.refresh_plot()    
@@ -252,6 +253,28 @@ class PolarPlotFrame(QtGui.QFrame):
         hideLimits = QtGui.QAction(translate("ViewBox", "Hide Limits"), self)
         hideLimits.triggered.connect(self.hideLimits)
         self.menu.addAction(hideLimits)
+
+        # widget for Polar Axis options
+        w = QtGui.QWidget()
+        hbox = QtGui.QHBoxLayout(w)
+        hbox.addWidget(QtGui.QLabel('Min:'))
+        self.minPolarText = QtGui.QLineEdit(w)
+        hbox.addWidget(self.minPolarText)
+        hbox.addWidget(QtGui.QLabel('Max:'))
+        self.maxPolarText = QtGui.QLineEdit(w)
+        hbox.addWidget(self.maxPolarText)
+
+        m = QtGui.QMenu(self)
+        m.setTitle(translate('ViewBox', 'Polar axis'))
+        a = QtGui.QWidgetAction(self)
+        a.setDefaultWidget(w)
+        m.addAction(a)
+        self.menu.addMenu(m)
+
+        self.minPolarText.editingFinished.connect(self.polarRangeTextChanged)
+        self.maxPolarText.editingFinished.connect(self.polarRangeTextChanged)
+
+
         self.change_x_axis(x_axis)
         if isinstance(y_axis, str):
             y_axis = [y_axis,]
@@ -324,6 +347,14 @@ class PolarPlotFrame(QtGui.QFrame):
         self.timer.timeout.connect(self.crosshairs.update)
         self.timer.timeout.connect(self.updated)
         self.timer.start(int(self.refresh_time * 1e3))
+    
+    def polarRangeTextChanged(self):
+        min_value = self.minPolarText.text()
+        max_value = self.maxPolarText.text()
+        if min_value != "":
+            self.plot_widget.scaling = -float(self.minPolarText.text())
+        if max_value != "":
+            self.plot_widget.outer_circle = float(self.maxPolarText.text())+self.plot_widget.scaling
 
     def insertLimit(self, limit, visible=True):
         phi = np.array(np.arange(0,365,5))
@@ -349,7 +380,6 @@ class PolarPlotFrame(QtGui.QFrame):
         if filter_label == self._theta or filter_label == self._phi:
               self.cut.setText("%s: %s°"%(filter_label,filter_value))
             
-
     def updateResultFilter(self, value):
         for item in self.plot.items:
             if isinstance(item, self.ResultsClass):
