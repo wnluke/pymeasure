@@ -175,6 +175,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             self.check_status
         )
         self.updated = self.plot_frame.updated
+        self.plot = self.plot_frame.plot
         self.columns_x.setCurrentIndex(0)
         self.columns_y.setCurrentIndex(1)
 
@@ -229,13 +230,13 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             i_curve.x = self.columns_x.currentText()
             i_curve.y = self.columns[i]
             i_curve.update_data()
-            self.plot_frame.plot.addItem(i_curve)
+            self.plot.addItem(i_curve)
             if i_curve.y not in checked:
                 i_curve.hide()
                 i_curve.update_data()
 
     def remove(self, curve):
-        self.plot_frame.removeItem(curve)
+        self.plot.removeItem(curve)
 
     def set_color(self, curve, color):
         """ Change the color of the pen of the curve """
