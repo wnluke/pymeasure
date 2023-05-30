@@ -44,6 +44,7 @@ from ..widgets import (
     EstimatorWidget,
 )
 from ...experiment import Results, Procedure
+from ..curves import ResultsCurve, MultiResultsCurve
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -465,8 +466,8 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
 
         curve_color = pg.intColor(0)
         for curve in curve_list:
-            if curve and hasattr(curve, 'color'):
-                curve_color = curve.color
+            if curve and isinstance(curve, (ResultsCurve, MultiResultsCurve)):
+                curve_color = curve.opts['pen'].color()
                 break
 
         browser_item = BrowserItem(results, curve_color)

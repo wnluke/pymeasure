@@ -82,10 +82,6 @@ class MultiResultsCurve(dict):
         for item in self.values():
             item.setSymbolBrush(value)
 
-    def updateItems(self, *args, **kwargs):
-        for item in self.values():
-            item.setSymbol(*args, **kwargs)
-
 
 class ResultsCurve(pg.PlotDataItem):
     """ Creates a curve loaded dynamically from a file through the Results object. The data can
