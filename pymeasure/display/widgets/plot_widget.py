@@ -172,7 +172,8 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
             self.columns[0],
             self.columns[1],
             self.refresh_time,
-            self.check_status
+            self.check_status,
+            parent=self,
         )
         self.updated = self.plot_frame.updated
         self.plot = self.plot_frame.plot
@@ -243,3 +244,16 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
         for i_curve in curve.values():
             i_curve.pen.setColor(color)
         curve.updateItems(styleUpdate=True)
+
+    def preview_widget(self, parent=None):
+        """ Return a widget suitable for preview during loading """
+        return PlotWidget("Plot preview",
+                          self.columns,
+                          self.plot_frame.x_axis,
+                          self.plot_frame.y_axis,
+                          parent=parent,
+                          )
+
+    def clear_widget(self):
+        self.plot.clear()
+
