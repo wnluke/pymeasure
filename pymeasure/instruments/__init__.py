@@ -55,6 +55,7 @@ from . import keysight
 from . import lakeshore
 from . import newport
 from . import ni
+from . import novanta
 from . import oxfordinstruments
 from . import parker
 from . import razorbill
