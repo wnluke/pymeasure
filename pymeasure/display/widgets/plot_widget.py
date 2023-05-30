@@ -241,9 +241,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
 
     def set_color(self, curve, color):
         """ Change the color of the pen of the curve """
-        for i_curve in curve.values():
-            i_curve.pen.setColor(color)
-        curve.updateItems(styleUpdate=True)
+        curve.set_color(color)
 
     def preview_widget(self, parent=None):
         """ Return a widget suitable for preview during loading """
@@ -256,4 +254,3 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
 
     def clear_widget(self):
         self.plot.clear()
-
