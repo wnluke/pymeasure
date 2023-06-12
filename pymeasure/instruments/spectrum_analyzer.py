@@ -240,10 +240,10 @@ Single sweep acquisition and peak value calculation
         dynamic=True
     )
 
-    def __init__(self, resourceName, description, **kwargs):
+    def __init__(self, adapter, name="Generic Spectrum analyzer", **kwargs):
         super(SpectrumAnalyzer, self).__init__(
-            resourceName,
-            description,
+            adapter,
+            name,
             **kwargs
         )
 

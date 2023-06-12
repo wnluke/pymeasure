@@ -47,10 +47,10 @@ class RS_FSC6(SpectrumAnalyzer):
     average_type = None  # Not supported
     sweep_type = None  # Not supported
 
-    def __init__(self, resourceName, description, **kwargs):
+    def __init__(self, adapter, name="R&S FSC6 Spectrum Analyzer", **kwargs):
         super().__init__(
-            resourceName,
-            description,
+            adapter,
+            name,
             **kwargs
         )
 
@@ -60,9 +60,9 @@ class RS_FSC3(RS_FSC6):
 
     frequency_span_values = (10, 3e9)
 
-    def __init__(self, resourceName, **kwargs):
+    def __init__(self, adapter, name="R&S FSC3 Spectrum Analyzer", **kwargs):
         super().__init__(
-            resourceName,
-            "R&S FSC3 Spectrum Analyzer",
+            adapter,
+            name,
             **kwargs
         )

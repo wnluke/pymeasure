@@ -53,9 +53,9 @@ class RS_FSW13(SpectrumAnalyzer):
         "VIDEO": "VID"
     }
 
-    def __init__(self, resourceName, description="R&S FSW Spectrum Analyzer FSW-13", **kwargs):
+    def __init__(self, adapter, name="R&S FSW Spectrum Analyzer FSW-13", **kwargs):
         super().__init__(
-            resourceName,
-            description,
+            adapter,
+            name,
             **kwargs
         )
