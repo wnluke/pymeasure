@@ -69,10 +69,10 @@ class KeysightP5003A(SpectrumAnalyzer):
     average_type_get_command = "SENSe:SA:BANDwidth:VIDeo:AVER:TYPE?;"
     average_type_set_command = "SENSe:SA:BANDwidth:VIDeo:AVER:TYPE %s;"
 
-    def __init__(self, resourceName, port='A', **kwargs):
+    def __init__(self, adapter, name="Keysight P5003A Spectrum Analyzer", port='A', **kwargs):
         super().__init__(
-            resourceName,
-            "Keysight P5003A Spectrum Analyzer",
+            adapter,
+            name,
             **kwargs
         )
         self.port = port

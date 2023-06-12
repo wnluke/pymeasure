@@ -35,9 +35,9 @@ class RS_FSV3030(RS_FSW13):
 
     resolution_bw_values = (1, 10e6)
 
-    def __init__(self, resourceName, description="R&S FSV Spectrum Analyzer FSV3030", **kwargs):
+    def __init__(self, adapter, name="R&S FSV Spectrum Analyzer FSV3030", **kwargs):
         super().__init__(
-            resourceName,
-            description,
+            adapter,
+            name,
             **kwargs
         )

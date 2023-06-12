@@ -98,10 +98,10 @@ class AnritsuMS2830A(SpectrumAnalyzer):
                            "OFF": "OFF",
                            }
 
-    def __init__(self, resourceName, **kwargs):
+    def __init__(self, adapter, name="Anritsu MS2830A Spectrum Analyzer", **kwargs):
         super().__init__(
-            resourceName,
-            "Anritsu MS2830A Spectrum Analyzer",
+            adapter,
+            name,
             **kwargs
         )
         # Switch in SCPI mode
