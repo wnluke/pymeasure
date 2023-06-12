@@ -22,10 +22,10 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments.spectrum_analyzer import SpectrumAnalyzer
+from pymeasure.instruments.rohdeschwarz.rohdeschwarz_fsw13 import RS_FSW13
 
 
-class RS_FSV3030(SpectrumAnalyzer):
+class RS_FSV3030(RS_FSW13):
     """ Rohde&Schwarz FSV3030 spectrum analyzer """
 
     # Customize parameters with values taken from datasheet/user manual
@@ -35,27 +35,9 @@ class RS_FSV3030(SpectrumAnalyzer):
 
     resolution_bw_values = (1, 10e6)
 
-    input_attenuation_values = (0, 70)  # This limit is not clear in the datasheet
-
-    frequency_points_values = (101, 100001)
-
-    detector_values = ("APE", "NEG", "POS", "QPE", "SAMP", "RMS", "AVER", "CAV", "CRMS")
-
-    trace_mode_get_command = "DISPLAY:TRACe:MODE?;"
-    trace_mode_set_command = "DISPLAY:TRACe:MODE %s;"
-
-    input_attenuation_get_command = ":INPut:ATTenuation?;"
-    input_attenuation_set_command = ":INPut:ATTenuation %d;"
-
-    average_type_values = {
-        "POWER": "POW",
-        "VOLTAGE": "LIN",
-        "VIDEO": "VID"
-    }
-
-    def __init__(self, resourceName, **kwargs):
+    def __init__(self, resourceName, description="R&S FSV Spectrum Analyzer FSV3030", **kwargs):
         super().__init__(
             resourceName,
-            "R&S FSW Spectrum Analyzer FSV3030",
+            description,
             **kwargs
         )
