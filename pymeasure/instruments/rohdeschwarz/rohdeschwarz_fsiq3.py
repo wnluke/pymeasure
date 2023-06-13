@@ -56,7 +56,7 @@ class RS_FSIQ3(SpectrumAnalyzer):
 
     sweep_type = None  # Not supported
 
-    def __init__(self, adapter, name="R&S FSW Spectrum Analyzer FSIQ 3", **kwargs):
+    def __init__(self, adapter, name="R&S Spectrum Analyzer FSIQ 3", **kwargs):
         super().__init__(
             adapter,
             name,
