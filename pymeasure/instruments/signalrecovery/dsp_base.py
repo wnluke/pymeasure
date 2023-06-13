@@ -228,7 +228,7 @@ class DSPBase(Instrument):
 
     reference_phase = Instrument.control(
         "REFP.", "REFP. %g",
-        """Contorl the reference absolute phase angle.
+        """Control the reference absolute phase angle.
 
         Valid values are floating point numbers between 0 - 360 degrees.
          """,
@@ -290,7 +290,6 @@ class DSPBase(Instrument):
 
         # Check and map the value
         value = strict_discrete_set(value, sensitivities)
-        print(value)
         value = sensitivities.index(value)
 
         # Set sensitivity

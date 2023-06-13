@@ -49,6 +49,7 @@ Instruments by manufacturer:
    mksinst/index
    newport/index
    ni/index
+   novanta/index
    oxfordinstruments/index
    parker/index
    pendulum/index
@@ -58,6 +59,7 @@ Instruments by manufacturer:
    signalrecovery/index
    srs/index
    tcpowerconversion/index
+   tdk/index
    tektronix/index
    teledyne/index
    temptronic/index
