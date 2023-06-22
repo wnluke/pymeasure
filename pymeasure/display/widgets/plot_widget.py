@@ -237,7 +237,7 @@ class PlotWidget(TabWidget, QtWidgets.QWidget):
                 i_curve.update_data()
 
     def remove(self, curve):
-        self.plot.removeItem(curve)
+        self.plot_frame.removeItem(curve)
 
     def set_color(self, curve, color):
         """ Change the color of the pen of the curve """
