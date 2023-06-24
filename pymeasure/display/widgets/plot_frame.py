@@ -148,8 +148,3 @@ class PlotFrame(QtWidgets.QFrame):
         self.y_axis = axis_list
         self.y_axis_changed.emit(list(axis_list))
 
-    def removeItem(self, curve):
-        if not isinstance(curve, dict):
-            curve = {"dummy": curve}
-        for i_curve in curve.values():
-            self.plot.removeItem(i_curve)

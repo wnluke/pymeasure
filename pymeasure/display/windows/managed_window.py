@@ -469,8 +469,8 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
 
         curve_color = pg.intColor(0)
         for curve in curve_list:
-            if curve and isinstance(curve, (ResultsCurve, MultiResultsCurve)):
-                curve_color = curve.opts['pen'].color()
+            if hasattr(curve, 'color'):
+                curve_color = curve.color
                 break
 
         browser_item = BrowserItem(results, curve_color)
