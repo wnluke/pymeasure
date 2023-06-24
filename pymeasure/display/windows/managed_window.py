@@ -149,6 +149,9 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
         # Check if the get_estimates function is reimplemented
         self.use_estimator = not self.procedure_class.get_estimates == Procedure.get_estimates
 
+        # Validate DATA_COLUMNS fit pymeasure column header format
+        Procedure.parse_columns(self.procedure_class.DATA_COLUMNS)
+
         self._setup_ui()
         self._layout()
 
@@ -466,8 +469,8 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
 
         curve_color = pg.intColor(0)
         for curve in curve_list:
-            if curve and isinstance(curve, (ResultsCurve, MultiResultsCurve)):
-                curve_color = curve.opts['pen'].color()
+            if hasattr(curve, 'color'):
+                curve_color = curve.color
                 break
 
         browser_item = BrowserItem(results, curve_color)

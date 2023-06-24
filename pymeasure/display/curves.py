@@ -57,14 +57,17 @@ class MultiResultsCurve(dict):
                                         **kwargs
                                         )
 
-    def __getattr__(self, name):
-        if name == "wdg":
-            return list(self.values())[0].wdg
-        elif name == "color":
-            return list(self.values())[0].color
-        elif name == "opts":
-            return list(self.values())[0].opts
-        return super().__getattr__(name)
+    @property
+    def wdg(self):
+        return list(self.values())[0].wdg
+
+    @property
+    def color(self):
+        return list(self.values())[0].color
+
+    @property
+    def opts(self):
+        return list(self.values())[0].opts
 
     def update_data(self):
         for item in self.values():

@@ -62,6 +62,7 @@ Instruments by manufacturer:
    srs/index
    stmicroelectronics/index
    tcpowerconversion/index
+   tdk/index
    tektronix/index
    teledyne/index
    temptronic/index
