@@ -47,7 +47,6 @@ class XT981BL(Instrument):
     back_port_spar = Instrument.measurement(
         "BACKport:SPAR?;",
         """ Returns current backport S-parameters """,
-        map_values=True,
     )
 
     calibration = Instrument.control(
@@ -81,6 +80,113 @@ class XT981BL(Instrument):
         dynamic=True
     )
 
+    dump = Instrument.control(
+        "DUMP?;", "DUMP? %d;",
+        """ Dumps all tuner and fixture S-parameter data for one of all control frequencies.
+        This property can be set with parameter [FreqIdx].
+        """,
+        dynamic=True
+    )
+
+    fixture = Instrument.control(
+        "FIXTure?;", "FIXTure %s;",
+        """ Used to query current fixture file.
+            Sets fixture S-parameter block to a .s2p file or directly writes S-parameters of a selected control frequency.
+            If .s2p file is loaded freq must be called afterwards to set S-parameters.
+            If writing S-parameter data directly freq must be set first.
+            Example: 
+                FIXT atten.s2p
+                FIXT <idx> <s11m> <s11p> <s12m> <s12p> <s21m> <s21p> <s22m> <s22p>
+        This property can be set.
+        """,
+        dynamic=True
+    )
+
+    fixture_spar = Instrument.measurement(
+        "FIXTure:SPAR?;",
+        """ Returns current fixture S-parameters """,
+    )
+
+    ## To be changed with a method with parameters freqGHz_1 freqGHz_2 freqGHz_3
+    frequency = Instrument.control(
+        "FREQuency?;", "FREQuency %e;",
+        """ Displays currently loaded frequency and number of harmonics.
+            Sets tuner control frequency(s).
+            
+            FREQ <freqGHz> [nHarm] [nTune] Format for algorithm 2.
+            Where freqGHz, is the fundamental frequency, nHarm is the number of harmonics to observe, and nTune is number of harmonics to control.
+            Frequency must be a characterized frequency.
+            Example: FREQ 1.4 3 3
+            
+            FREQ <freqGHz_1> [freqGHz_2] [freqGHz_3] Format for algorithm 3.
+            Where freqGHz is a control frequency.
+            Example: FREQ 1.4 2.8 4.2
+            
+        This property can be set.
+        """,
+        validator=truncated_range,
+        values=(0.4, 8),
+        dynamic=True
+    )
+
+    gamma = Instrument.control(
+        "GAMMA?;", "GAMMA? %d;",
+        """ Reads current Gamma and Loss(dB) of one or all control frequencies.
+            The Loss value is defined between DUT and Load (including FIXTURE, TUNER and BACK)
+            Use IDX > 0 to report GAMMA at specific harmonic only. IDX=0 reports GAMMA for fundamental and all harmonics.
+            Examples: GAMMA?
+            Returns: <Freq>,<Mag,<Phase>,<Loss>
+        This property can be set with parameter [FreqIdx].
+        """,
+        dynamic=True
+    )
+
+    loss = Instrument.control(
+        "LOSS?;", "LOSS? %d;",
+        """ Same as GAMMA?
+        This property can be set with parameter [FreqIdx].
+        """,
+        dynamic=True
+    )
+
+    help = Instrument.measurement(
+        "HELP?;",
+        """ Display list of supported commands """,
+    )
+
+    setup = Instrument.measurement(
+        "SETUP?;",
+        """ Query current setup file """,
+    )
+
+    setup_all = Instrument.measurement(
+        "SETUP:ALL?;",
+        """ Query all files in current setup file.
+            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
+    )
+
+    position = Instrument.measurement(
+        "POSition?;",
+        """ Query all files in current setup file.
+            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
+    )
+
+    spar = Instrument.measurement(
+        "SPARameter?;",
+        """ Reads current network S-Parameters and Loss(dB) of one or all control frequencies
+            Example: SPAR? """,
+    )
+
+    status = Instrument.measurement(
+        "STATus?;",
+        """ Reports the move status of one or all motors
+            Return value=0 ► Tuner is IDLE
+            Return value>0 ► Tuner is busy (bit0=carriage, bit 1=probe1, etc…) """,
+    )
+
+    ## To be added: Setup store and setup recall and so on
+
+
     def __init__(self, resourceName, description="Maury Microwave XT981BL", **kwargs):
         super().__init__(
             resourceName,
@@ -91,4 +197,31 @@ class XT981BL(Instrument):
     def clear(self):
         """ Clears all settings for calibration, frequencies, and fixture files """
         self.write("CLEAR;")
+
+    def initialize(self):
+        """ Initializes individual motor, carriage, or entire tuner.
+            Use complete command to detect when INIT procedure has finished. """
+        self.write("INIT;")
         self.complete
+
+    def set_position(self, motor, position):
+        """ Moves motors to target position
+            Mot=1 ► Carriage
+            Mot=2 ► Low frequency probe
+            Mot=3 ► High frequency probe
+            Examples:
+                POS 1 200 2 4500 3 2000
+                POS 2 3000
+            param:
+                motor: integer that represents the motor
+                position: integer that represents the position
+        """
+        if isinstance(motor and position, list):
+            for m, p in zip(motor, position):
+                self.write(f"POSition {m} {p};")
+        else:
+            self.write(f"POSition {motor} {position};")
+
+    def stop(self):
+        """ Immediately stops all motor operations """
+        self.write("STOP;")
