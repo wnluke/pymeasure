@@ -149,11 +149,22 @@ class XT981BL(Instrument):
             Example: SPAR? """,
     )
 
+    frequency = Instrument.measurement(
+        "FREQuency?;",
+        """ Displays currently loaded frequency and number of harmonics. """,
+    )
+
     status = Instrument.measurement(
         "STATus?;",
         """ Reports the move status of one or all motors
             Return value=0 ► Tuner is IDLE
             Return value>0 ► Tuner is busy (bit0=carriage, bit 1=probe1, etc…) """,
+    )
+
+    position = Instrument.measurement(
+        "POSition?;",
+        """ Query all files in current setup file.
+            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
     )
 
     init_status = Instrument.measurement(
@@ -191,6 +202,12 @@ class XT981BL(Instrument):
         dynamic=True
     )
 
+    tune_weight = Instrument.measurement(
+        "TUNE:WEIGHT?",
+        """ Reports current tuning weight
+            Example: TUNE:WEIGHT 5 .003 1 """,
+    )
+
     def __init__(self, resourceName, description="Maury Microwave XT981BL", **kwargs):
         super().__init__(
             resourceName,
@@ -212,7 +229,7 @@ class XT981BL(Instrument):
     def position(self):
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """
-        return self.ask("POSition?;")
+        return self.position
 
     @position.setter
     def position(self, motor, position):
@@ -239,7 +256,7 @@ class XT981BL(Instrument):
     @property
     def frequency(self):
         """ Displays currently loaded frequency and number of harmonics. """
-        return self.ask("FREQuency?;")
+        return self.frequency
 
     @frequency.setter
     def frequency(self, f1, f2="", f3=""):
@@ -291,7 +308,7 @@ class XT981BL(Instrument):
     def tune_weight(self):
         """ Reports current tuning weight
             Example: TUNE:WEIGHT 5 .003 1 """
-        return self.ask("TUNE:WEIGHT?")
+        return self.tune_weight
 
     @tune_weight.setter
     def tune_weight(self, weight, radius, freq_idx):
