@@ -26,7 +26,7 @@ from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_discrete_set
 
 
-class XT981BL(Instrument):
+class XT981BL18(Instrument):
 
     """
         All the commands are available in the "USER GUIDE XT Tuner: Connection and Control (XT981-557 Rev B 08/2022)"
@@ -149,7 +149,7 @@ class XT981BL(Instrument):
             Example: SPAR? """,
     )
 
-    frequency = Instrument.measurement(
+    _frequency = Instrument.measurement(
         "FREQuency?;",
         """ Displays currently loaded frequency and number of harmonics. """,
     )
@@ -161,7 +161,7 @@ class XT981BL(Instrument):
             Return value>0 ► Tuner is busy (bit0=carriage, bit 1=probe1, etc…) """,
     )
 
-    position = Instrument.measurement(
+    _position = Instrument.measurement(
         "POSition?;",
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
@@ -202,13 +202,13 @@ class XT981BL(Instrument):
         dynamic=True
     )
 
-    tune_weight = Instrument.measurement(
-        "TUNE:WEIGHT?",
+    _tune_weight = Instrument.measurement(
+        "TUNE:WEIGHT?;",
         """ Reports current tuning weight
             Example: TUNE:WEIGHT 5 .003 1 """,
     )
 
-    def __init__(self, resourceName, description="Maury Microwave XT981BL", **kwargs):
+    def __init__(self, resourceName, description="Maury Microwave Corporation,XT981BL18", **kwargs):
         super().__init__(
             resourceName,
             description,
@@ -229,7 +229,7 @@ class XT981BL(Instrument):
     def position(self):
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """
-        return self.position
+        return self._position
 
     @position.setter
     def position(self, motor, position):
@@ -247,16 +247,12 @@ class XT981BL(Instrument):
                 motor: integer that represents the motor
                 position: integer that represents the position
         """
-        if isinstance(motor and position, list):
-            for m, p in zip(motor, position):
-                self.write(f"POSition {m} {p};")
-        else:
-            self.write(f"POSition {motor} {position};")
+        self.write(f"POSition {motor} {position};")
 
     @property
     def frequency(self):
         """ Displays currently loaded frequency and number of harmonics. """
-        return self.frequency
+        return self._frequency
 
     @frequency.setter
     def frequency(self, f1, f2="", f3=""):
@@ -308,7 +304,7 @@ class XT981BL(Instrument):
     def tune_weight(self):
         """ Reports current tuning weight
             Example: TUNE:WEIGHT 5 .003 1 """
-        return self.tune_weight
+        return self._tune_weight
 
     @tune_weight.setter
     def tune_weight(self, weight, radius, freq_idx):
