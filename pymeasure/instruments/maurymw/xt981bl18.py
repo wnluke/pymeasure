@@ -208,6 +208,11 @@ class XT981BL18(Instrument):
             Example: TUNE:WEIGHT 5 .003 1 """,
     )
 
+    dir = Instrument.measurement(
+        "DIR?;",
+        """ List contents of working directory """,
+    )
+
     def __init__(self, resourceName, description="Maury Microwave Corporation,XT981BL18", **kwargs):
         super().__init__(
             resourceName,
@@ -221,9 +226,8 @@ class XT981BL18(Instrument):
 
     def initialize(self):
         """ Initializes individual motor, carriage, or entire tuner.
-            Use complete command to detect when INIT procedure has finished. """
+            Use complete or status command to detect when INIT procedure has finished. """
         self.write("INIT;")
-        self.complete
 
     @property
     def position(self):
