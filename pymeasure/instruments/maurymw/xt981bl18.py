@@ -24,6 +24,7 @@
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_discrete_set
+from math import atan2,degrees
 
 
 class XT981BL18(Instrument):
@@ -290,6 +291,22 @@ class XT981BL18(Instrument):
             Example: TUNE:VSWR 10 120 10 -120 10 0
         """
         self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3}")
+
+    def set_zload(self, r, i, z0=50):
+        """
+            Set the desired load of the control frequency.
+            Example: set_zload(22,-5) ► You should see in the smith chart @ control frequency a real part 22Ω and an imaginary -5Ω
+            param:
+                r: real part
+                i: imaginary part
+                z0: characteristic impedance of the line
+        """
+        z_load = complex(r, i)
+        gamma = (z_load-z0)/(z_load+z0)
+        mag = abs(gamma)
+        phase_rad = atan2(gamma.imag, gamma.real)
+        phase_deg = degrees(phase_rad)
+        self.tune(mag, phase_deg)
 
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
