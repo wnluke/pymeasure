@@ -149,7 +149,7 @@ class XT981BL18(Instrument):
             Example: SPAR? """,
     )
 
-    _frequency = Instrument.measurement(
+    frequency = Instrument.measurement(
         "FREQuency?;",
         """ Displays currently loaded frequency and number of harmonics. """,
     )
@@ -161,7 +161,7 @@ class XT981BL18(Instrument):
             Return value>0 ► Tuner is busy (bit0=carriage, bit 1=probe1, etc…) """,
     )
 
-    _position = Instrument.measurement(
+    position = Instrument.measurement(
         "POSition?;",
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
@@ -202,7 +202,7 @@ class XT981BL18(Instrument):
         dynamic=True
     )
 
-    _tune_weight = Instrument.measurement(
+    tune_weight = Instrument.measurement(
         "TUNE:WEIGHT?;",
         """ Reports current tuning weight
             Example: TUNE:WEIGHT 5 .003 1 """,
@@ -229,14 +229,7 @@ class XT981BL18(Instrument):
             Use complete or status command to detect when INIT procedure has finished. """
         self.write("INIT;")
 
-    @property
-    def position(self):
-        """ Query all files in current setup file.
-            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """
-        return self._position
-
-    @position.setter
-    def position(self, motor, position):
+    def set_position(self, motor, position):
         """ Moves motors to target position
 
             Mot=1 ► Carriage
@@ -253,13 +246,7 @@ class XT981BL18(Instrument):
         """
         self.write(f"POSition {motor} {position};")
 
-    @property
-    def frequency(self):
-        """ Displays currently loaded frequency and number of harmonics. """
-        return self._frequency
-
-    @frequency.setter
-    def frequency(self, f1, f2="", f3=""):
+    def set_frequency(self, f1, f2="", f3=""):
         """ Sets tuner control frequency(s).
 
             FREQ <freqGHz> [nHarm] [nTune] Format for algorithm 2.
@@ -303,14 +290,7 @@ class XT981BL18(Instrument):
             Example: TUNE:VSWR 10 120 10 -120 10 0
         """
         self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3}")
-    
-    @property
-    def tune_weight(self):
-        """ Reports current tuning weight
-            Example: TUNE:WEIGHT 5 .003 1 """
-        return self._tune_weight
 
-    @tune_weight.setter
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
             Example: TUNE:WEIGHT 5 .003 1 """
