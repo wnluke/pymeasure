@@ -60,9 +60,9 @@ class XT981BL18(Instrument):
         dynamic=True
     )
 
-    cal_info = Instrument.control(
-        "CALINFO?;", "CALINFO? %s;",
-        """ Reads contents of current cal or selected file [fname]
+    cal_info = Instrument.measurement(
+        "CALINFO?;",
+        """ Reads contents of current calibration
             Example: CALINFO? xt982a.tun
         This property can be set.
         """,
@@ -82,10 +82,8 @@ class XT981BL18(Instrument):
     )
 
     dump = Instrument.control(
-        "DUMP?;", "DUMP? %d;",
-        """ Dumps all tuner and fixture S-parameter data for one of all control frequencies.
-        This property can be set with parameter [FreqIdx].
-        """,
+        "DUMP?;",
+        """ Dumps all tuner and fixture S-parameter data for one of all control frequencies """,
         dynamic=True
     )
 
@@ -108,23 +106,19 @@ class XT981BL18(Instrument):
         """ Returns current fixture S-parameters """,
     )
 
-    gamma = Instrument.control(
-        "GAMMA?;", "GAMMA? %d;",
+    gamma = Instrument.measurement(
+        "GAMMA?;",
         """ Reads current Gamma and Loss(dB) of one or all control frequencies.
             The Loss value is defined between DUT and Load (including FIXTURE, TUNER and BACK)
-            Use IDX > 0 to report GAMMA at specific harmonic only. IDX=0 reports GAMMA for fundamental and all harmonics.
             Examples: GAMMA?
             Returns: <Freq>,<Mag,<Phase>,<Loss>
-        This property can be set with parameter [FreqIdx].
         """,
         dynamic=True
     )
 
-    loss = Instrument.control(
-        "LOSS?;", "LOSS? %d;",
-        """ Same as GAMMA?
-        This property can be set with parameter [FreqIdx].
-        """,
+    loss = Instrument.measurement(
+        "LOSS?;",
+        """ Same as GAMMA? """,
         dynamic=True
     )
 
@@ -195,11 +189,9 @@ class XT981BL18(Instrument):
         """ Returns the current termination S-parameters """,
     )
 
-    vswr = Instrument.control(
-        "VSWR?;", "VSWR? %d;",
-        """ Reports VSWR and Loss.
-        Use IDX > 0 to report VSWR at specific control frequency. Blank IDX or IDX=0 reports VSWR for fundamental and all harmonics..
-        """,
+    vswr = Instrument.measurement(
+        "VSWR?;",
+        """ Reports VSWR and Loss """,
         dynamic=True
     )
 
@@ -295,7 +287,7 @@ class XT981BL18(Instrument):
     def set_zload(self, r, i, z0=50):
         """
             Set the desired load of the control frequency.
-            Example: set_zload(22,-5) ► You should see in the smith chart @ control frequency a real part 22Ω and an imaginary -5Ω
+            Example: set_zload(22,-5) ► You should see in the smith chart @ control frequency ► Z=22-j5
             param:
                 r: real part
                 i: imaginary part
