@@ -81,7 +81,7 @@ class XT981BL18(Instrument):
         dynamic=True
     )
 
-    dump = Instrument.control(
+    dump = Instrument.measurement(
         "DUMP?;",
         """ Dumps all tuner and fixture S-parameter data for one of all control frequencies """,
         dynamic=True
