@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2021 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,6 @@ class TestArgParsing:
 
         name, value = param
         console = ConsoleArgumentParser(TestProcedure)
-        console.setup_parser([name])
         args = vars(console.parse_args(['--' + name, str(value)]))
         assert args[name] == value
 
@@ -84,7 +83,6 @@ class TestArgHelpString:
         desc = kwargs['name']
         default_value = kwargs['default']
         console = ConsoleArgumentParser(TestProcedure)
-        console.setup_parser(['parameter'])
         help_message = [value.strip() for value in console.format_help().split("\n")]
         assert '--parameter PARAMETER' in help_message
         for help_line in help_message:

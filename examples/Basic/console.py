@@ -1,11 +1,15 @@
 """
-This example demonstrates how to make a graphical interface, and uses
+This example demonstrates how to run an experiment both with graphical
+interface or with a console mode. If the script run without any parameter,
+the GUI version is displayed, otherwise the console mode is run. It uses
 a random number generator to simulate data so that it does not require
 an instrument to use.
 
 Run the program by changing to the directory containing this file and calling:
 
-python gui.py
+python console.py #GUI version
+python console.py --seed 12345 #Console version
+
 
 """
 
@@ -17,15 +21,15 @@ from time import sleep
 from pymeasure.experiment import Procedure, IntegerParameter, Parameter, FloatParameter
 from pymeasure.experiment import Results
 from pymeasure.display.console import ManagedConsole
-from pymeasure.display.Qt import QtGui
+from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.windows import ManagedWindow
 import logging
+
 log = logging.getLogger('')
 log.addHandler(logging.NullHandler())
 
 
 class TestProcedure(Procedure):
-
     iterations = IntegerParameter('Loop Iterations', default=100)
     delay = FloatParameter('Delay Time', units='s', default=0.2)
     seed = Parameter('Random Seed', default='12345')
@@ -45,7 +49,7 @@ class TestProcedure(Procedure):
             }
             log.debug("Produced numbers: %s" % data)
             self.emit('results', data)
-            self.emit('progress', 100*i/self.iterations)
+            self.emit('progress', 100 * (i + 1) / self.iterations)
             sleep(self.delay)
             if self.should_stop():
                 log.warning("Catch stop command in procedure")
@@ -53,16 +57,6 @@ class TestProcedure(Procedure):
 
     def shutdown(self):
         log.info("Finished")
-
-
-class Console(ManagedConsole):
-
-    def __init__(self, argv):
-        super().__init__(
-            argv,
-            procedure_class=TestProcedure,
-            inputs=['iterations', 'delay', 'seed'],
-        )
 
 
 class MainWindow(ManagedWindow):
@@ -89,10 +83,12 @@ class MainWindow(ManagedWindow):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        app = Console(sys.argv)
+        # If any parameter is passed, the console mode is run
+        # This criteria can be changed at user discretion
+        app = ManagedConsole(procedure_class=TestProcedure)
     else:
-        app = QtGui.QApplication(sys.argv)
+        app = QtWidgets.QApplication(sys.argv)
         window = MainWindow()
         window.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
