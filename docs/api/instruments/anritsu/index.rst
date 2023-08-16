@@ -14,3 +14,4 @@ This section contains specific documentation on the Anritsu instruments that are
    anritsuMS9740A 
    anritsuMS2090A
    anritsuMS2830A
+   anritsuMS464xB
