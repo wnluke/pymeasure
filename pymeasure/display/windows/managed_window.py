@@ -44,7 +44,6 @@ from ..widgets import (
     EstimatorWidget,
 )
 from ...experiment import Results, Procedure
-from ..curves import ResultsCurve, MultiResultsCurve
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())

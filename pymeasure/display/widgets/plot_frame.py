@@ -147,4 +147,3 @@ class PlotFrame(QtWidgets.QFrame):
         self.plot.setLabel('left', label, units=units, **self.LABEL_STYLE)
         self.y_axis = axis_list
         self.y_axis_changed.emit(list(axis_list))
-
