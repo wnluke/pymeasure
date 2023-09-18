@@ -24,6 +24,8 @@
 
 from io import BytesIO
 import re
+import pyvisa as visa
+import time
 
 from pymeasure.instruments.rf_signal_generator import RFSignalGeneratorIQ, RFSignalGenerator
 from pymeasure.instruments import Instrument
@@ -275,3 +277,154 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         """ Delete a file in the instrument memory """
         if filename in self.file_list:
             self.write(f":MMEM:DEL '{filename:s}'")
+
+
+class RS_SGT100A_LORA(RS_SGT100A):
+
+    def __init__(self, resourceName, **kwargs):
+            super().__init__(
+                resourceName,
+                **kwargs
+            )
+            
+            if resourceName == "NONE":
+                self.present = False
+            else:
+                rm = visa.ResourceManager()
+                self.present = True
+                self.resource = rm.open_resource(resourceName)
+                self.resource.timeout = 25000            
+            
+    def write(self, val):
+        if self.present:
+            self.resource.write(val)
+        else:
+            pass
+
+    def control_ren(self, val):
+        if self.present:
+            self.resource.control_ren(val)
+        else:
+            pass
+
+    def close(self):
+        if self.present:
+            self.resource.close()
+        else:
+            pass
+
+    def read(self):
+        if self.present:
+            return str(self.resource.read()).strip('\n')
+        else:
+            return 'Instrument not found'
+
+    def ask(self, command):
+        if self.present:
+            return self.resource.query(command)
+        else:
+            return 'Instrument not found'
+
+    def clr(self):
+        if self.present:
+            self.write("*CLR")
+        else:
+            return "No instrument"
+
+    def cls(self):
+        if self.present:
+            self.write("*CLS")
+        else:
+            return "No instrument"
+
+    def rst(self):
+        if self.present:
+            self.write("*RST")
+        else:
+            return "No instrument"
+
+    def wait(self):
+        if self.present:
+            self.write("*WAI")
+        else:
+            return "No instrument"
+
+    def done(self):
+        if self.present:
+            return self.ask("*OPC?")
+        else:
+            return "No instrument"
+
+    def idn(self):
+        if self.present:
+            return self.ask("*IDN?")
+        else:
+            return "No instrument"
+
+    def option(self):
+        if self.present:
+            return self.ask("*OPT?")
+        else:
+            return "No instrument"
+
+    def arb_trig_source(self, source, mode):
+        """
+        @param source: INTernal|OBASeband|BEXTernal|EXTernal
+        @param mode: AUTO | RETRigger | AAUTo | ARETrigger | SINGle
+        @return:
+        """
+        self.write("BB:ARB:TRIG:SOUR {0}".format(source))
+        self.write("BB:ARB:SEQ {0}".format(mode))
+
+    def out(self, state):
+        """
+        @param state: {ON|OFF}
+        @return:
+        """
+        self.write(":OUTP %s" % state)
+
+    def arb_select(self, waveform):
+        """
+        Select arbitrary waveform
+        """
+        self.write(":BB:ARB:WAV:SEL \'%s\'" % waveform)
+
+    def arbSetSampleClock(self, freqHz):
+        self.write("BB:ARB:CLOCK %f Hz" % freqHz)
+        return self.done()
+
+    def ampl(self, amplitude):
+        """
+        @param amplitude:
+        @return:
+        """
+        self.write(":POW %fDBM" % amplitude)
+
+    def freq(self, freqHz):
+        self.write("SOUR:FREQ:CW %f Hz" % freqHz)
+        return self.done()
+
+    def arbSetTriggerSingle(self, pktCount):
+        self.write("BB:ARB:SEQ SING")
+        self.write("BB:ARB:TRIG:SLUN SEQ")
+        self.write("BB:ARB:TRIG:SLEN %d" % pktCount)
+        self.done()
+
+    def arb_trig(self):
+        """
+        :return:
+        """
+        self.write("BB:ARB:TRIG:EXEC")
+
+    def trig_wait_start(self):
+        count = 0
+        while True:
+            s = str(self.ask("BB:ARB:TRIG:RMOD?")).strip()
+            if s == "RUN":
+                return True
+            self.done()
+            time.sleep(1.0e-3)
+            count += 1
+            if count == 1000:
+                return False
+        
