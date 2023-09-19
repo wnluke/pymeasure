@@ -24,7 +24,8 @@
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_discrete_set
-from math import atan2,degrees
+from math import atan2, degrees, pi
+from numpy import exp
 
 
 class XT981BL18(Instrument):
@@ -223,38 +224,36 @@ class XT981BL18(Instrument):
         self.write("INIT;")
 
     def set_position(self, motor, position):
-        """ Moves motors to target position
+        """
+        Moves motors to target position
 
-            Mot=1 ► Carriage
-            Mot=2 ► Low frequency probe
-            Mot=3 ► High frequency probe
+        Mot=1 ► Carriage
+        Mot=2 ► Low frequency probe
+        Mot=3 ► High frequency probe
 
-            Examples:
-                POS 1 200 2 4500 3 2000
-                POS 2 3000
-
-            param:
-                motor: integer that represents the motor
-                position: integer that represents the position
+        Examples:
+            POS 1 200 2 4500 3 2000
+            POS 2 3000
+        :param motor: integer that represents the motor
+        :param position: integer that represents the position
         """
         self.write(f"POSition {motor} {position};")
 
     def set_frequency(self, f1, f2="", f3=""):
-        """ Sets tuner control frequency(s).
+        """
+        Sets tuner control frequency(s).
+        FREQ <freqGHz> [nHarm] [nTune] Format for algorithm 2.
+        Where freqGHz, is the fundamental frequency, nHarm is the number of harmonics to observe, and nTune is number of harmonics to control.
+        Frequency must be a characterized frequency.
+        Example: FREQ 1.4 3 3
 
-            FREQ <freqGHz> [nHarm] [nTune] Format for algorithm 2.
-            Where freqGHz, is the fundamental frequency, nHarm is the number of harmonics to observe, and nTune is number of harmonics to control.
-            Frequency must be a characterized frequency.
-            Example: FREQ 1.4 3 3
+        FREQ <freqGHz_1> [freqGHz_2] [freqGHz_3] Format for algorithm 3.
+        Where freqGHz is a control frequency.
+        Example: FREQ 1.4 2.8 4.2
 
-            FREQ <freqGHz_1> [freqGHz_2] [freqGHz_3] Format for algorithm 3.
-            Where freqGHz is a control frequency.
-            Example: FREQ 1.4 2.8 4.2
-
-            param:
-                f1: floating that represents the control frequency 1 in GHz
-                f2: floating that represents the control frequency 2 in GHz
-                f3: floating that represents the control frequency 3 in GHz
+        :param f1: floating that represents the control frequency 1 in GHz
+        :param f2: floating that represents the control frequency 2 in GHz
+        :param f3: floating that represents the control frequency 3 in GHz
         """
         self.write(f"FREQuency {f1} {f2} {f3};")
 
@@ -286,12 +285,12 @@ class XT981BL18(Instrument):
 
     def set_zload(self, r, i, z0=50):
         """
-            Set the desired load of the control frequency.
-            Example: set_zload(22,-5) ► You should see in the smith chart @ control frequency ► Z=22-j5
-            param:
-                r: real part
-                i: imaginary part
-                z0: characteristic impedance of the line
+        Set the desired load of the control frequency.
+        Example: set_zload(22,-5) ► You should see in the smith chart @ control frequency ► Z=22-j5
+
+        :param r: real part
+        :param i: imaginary part
+        :param z0: characteristic impedance of the line
         """
         z_load = complex(r, i)
         gamma = (z_load-z0)/(z_load+z0)
@@ -299,6 +298,19 @@ class XT981BL18(Instrument):
         phase_rad = atan2(gamma.imag, gamma.real)
         phase_deg = degrees(phase_rad)
         self.tune(mag, phase_deg)
+
+    def get_zload(self, mag, phase, z0=50):
+        """
+        Get the load of the control frequency from the magnitude and phase information.
+        :param mag: magnitude
+        :param phase: phase
+        :param z0: characteristic impedance of the line
+        """
+
+        phase_rad = phase * (pi/180)
+        gamma = mag*exp(1j * phase_rad)
+        z_load = z0*((1+gamma)/(1-gamma))
+        return z_load
 
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
