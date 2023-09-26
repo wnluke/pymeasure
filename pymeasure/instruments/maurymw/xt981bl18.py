@@ -168,11 +168,6 @@ class XT981BL18(Instrument):
         """ Indicates if one of all motors have been initialized. 1 indicates motor has been initialized """,
     )
 
-    limit_status = Instrument.measurement(
-        "STATus:INIT?",
-        """ Indicates if one of all motors have been initialized. 1 indicates motor has been initialized """,
-    )
-
     termination = Instrument.control(
         "TERMination?;", "TERMination %s;",
         """ Used to query current termination file.
