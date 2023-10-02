@@ -305,7 +305,8 @@ class XT981BL18(Instrument):
         phase_rad = phase * (pi/180)
         gamma = mag*exp(1j * phase_rad)
         z_load = z0*((1+gamma)/(1-gamma))
-        return z_load
+        z_load_rounded = complex(round(z_load.real, 2), round(z_load.imag, 2))
+        return z_load_rounded
 
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
