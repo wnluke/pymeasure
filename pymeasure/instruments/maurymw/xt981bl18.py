@@ -34,10 +34,20 @@ class XT981BL18(Instrument):
         All the commands are available in the "USER GUIDE XT Tuner: Connection and Control (XT981-557 Rev B 08/2022)"
         Chapter 8 TUNING COMMANDS
 
+        EXAMPLE:
+            tuner = XT981BL18("COM310")
+            tuner.clear() # Clears all settings for calibration, frequencies, and fixture files
+            print(f"Tuner: {tuner.id}") # checking instrument's identification
+            print(f"Working directory: {tuner.dir}") # reading SD card's files
+            tuner.init() # initializing tuner
+            #wait until initialized
+            tuner.config_algo = 3
+            tuner.calibration = "XT981BL18_868MHz_medium.tunx" # loading calibration file
+            tuner.set_frequency(0.868) # set tuner control frequency to 868MHz
     """
 
     back_port = Instrument.control(
-        "BACKport?;", "BACKport %s;",
+        "BACKport?", "BACKport %s",
         """ Query current backport file.
             Set backport S-parameter block to a .s2p file or directly writes S-parameters of a selected control frequency.
             Example: BACK atten.s2p
@@ -47,12 +57,12 @@ class XT981BL18(Instrument):
     )
 
     back_port_spar = Instrument.measurement(
-        "BACKport:SPAR?;",
+        "BACKport:SPAR?",
         """ Returns current backport S-parameters """,
     )
 
     calibration = Instrument.control(
-        "CALIBration?;", "CALIBration %s;",
+        "CALIBration?", "CALIBration %s",
         """ Reads current calibration file.
             Defines calibration data file. Data is loaded into memory after sending FREQ command.
             Example: CALIB xt982a.tun
@@ -62,7 +72,7 @@ class XT981BL18(Instrument):
     )
 
     cal_info = Instrument.measurement(
-        "CALINFO?;",
+        "CALINFO?",
         """ Reads contents of current calibration
             Example: CALINFO? xt982a.tun
         This property can be set.
@@ -71,7 +81,7 @@ class XT981BL18(Instrument):
     )
 
     config_algo = Instrument.control(
-        "CONFIGuration:ALGorithm?;", "CONFIGuration:ALGorithm %d;",
+        "CONFIGuration:ALGorithm?", "CONFIGuration:ALGorithm %d",
         """ Queries set algorithm.
             Sets the tuning algorithm.
             Example: CONFIGuration:ALGorithm 3
@@ -83,13 +93,13 @@ class XT981BL18(Instrument):
     )
 
     dump = Instrument.measurement(
-        "DUMP?;",
+        "DUMP?",
         """ Dumps all tuner and fixture S-parameter data for one of all control frequencies """,
         dynamic=True
     )
 
     fixture = Instrument.control(
-        "FIXTure?;", "FIXTure %s;",
+        "FIXTure?", "FIXTure %s",
         """ Used to query current fixture file.
             Sets fixture S-parameter block to a .s2p file or directly writes S-parameters of a selected control frequency.
             If .s2p file is loaded freq must be called afterwards to set S-parameters.
@@ -103,12 +113,12 @@ class XT981BL18(Instrument):
     )
 
     fixture_spar = Instrument.measurement(
-        "FIXTure:SPAR?;",
+        "FIXTure:SPAR?",
         """ Returns current fixture S-parameters """,
     )
 
     gamma = Instrument.measurement(
-        "GAMMA?;",
+        "GAMMA?",
         """ Reads current Gamma and Loss(dB) of one or all control frequencies.
             The Loss value is defined between DUT and Load (including FIXTURE, TUNER and BACK)
             Examples: GAMMA?
@@ -118,58 +128,58 @@ class XT981BL18(Instrument):
     )
 
     loss = Instrument.measurement(
-        "LOSS?;",
+        "LOSS?",
         """ Same as GAMMA? """,
         dynamic=True
     )
 
     help = Instrument.measurement(
-        "HELP?;",
+        "HELP?",
         """ Display list of supported commands """,
     )
 
     setup = Instrument.measurement(
-        "SETUP?;",
+        "SETUP?",
         """ Query current setup file """,
     )
 
     setup_all = Instrument.measurement(
-        "SETUP:ALL?;",
+        "SETUP:ALL?",
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
     )
 
     spar = Instrument.measurement(
-        "SPARameter?;",
+        "SPARameter?",
         """ Reads current network S-Parameters and Loss(dB) of one or all control frequencies
             Example: SPAR? """,
     )
 
     frequency = Instrument.measurement(
-        "FREQuency?;",
+        "FREQuency?",
         """ Displays currently loaded frequency and number of harmonics. """,
     )
 
     status = Instrument.measurement(
-        "STATus?;",
+        "STATus?",
         """ Reports the move status of one or all motors
             Return value=0 ► Tuner is IDLE
             Return value>0 ► Tuner is busy (bit0=carriage, bit 1=probe1, etc…) """,
     )
 
     position = Instrument.measurement(
-        "POSition?;",
+        "POSition?",
         """ Query all files in current setup file.
             Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
     )
 
     init_status = Instrument.measurement(
-        "STATus:INIT?;",
+        "STATus:INIT?",
         """ Indicates if one of all motors have been initialized. 1 indicates motor has been initialized """,
     )
 
     termination = Instrument.control(
-        "TERMination?;", "TERMination %s;",
+        "TERMination?", "TERMination %s",
         """ Used to query current termination file.
             Sets termination S-parameter block to a .s1p file or directly writes S-parameters of a selected control frequency.
             If .s1p file is loaded freq must be called afterwards to set S-parameters.
@@ -181,24 +191,24 @@ class XT981BL18(Instrument):
     )
 
     termination_spar = Instrument.measurement(
-        "TERMination:SPAR?;",
+        "TERMination:SPAR?",
         """ Returns the current termination S-parameters """,
     )
 
     vswr = Instrument.measurement(
-        "VSWR?;",
+        "VSWR?",
         """ Reports VSWR and Loss """,
         dynamic=True
     )
 
     tune_weight = Instrument.measurement(
-        "TUNE:WEIGHT?;",
+        "TUNE:WEIGHT?",
         """ Reports current tuning weight
             Example: TUNE:WEIGHT 5 .003 1 """,
     )
 
     dir = Instrument.measurement(
-        "DIR?;",
+        "DIR?",
         """ List contents of working directory """,
     )
 
@@ -211,12 +221,12 @@ class XT981BL18(Instrument):
 
     def clear(self):
         """ Clears all settings for calibration, frequencies, and fixture files """
-        self.write("CLEAR;")
+        self.write("CLEAR")
 
-    def initialize(self):
+    def init(self):
         """ Initializes individual motor, carriage, or entire tuner.
             Use complete or status command to detect when INIT procedure has finished. """
-        self.write("INIT;")
+        self.write("INIT")
 
     def set_position(self, motor, position):
         """
@@ -232,7 +242,7 @@ class XT981BL18(Instrument):
         :param motor: integer that represents the motor
         :param position: integer that represents the position
         """
-        self.write(f"POSition {motor} {position};")
+        self.write(f"POSition {motor} {position}")
 
     def set_frequency(self, f1, f2="", f3=""):
         """
@@ -250,7 +260,7 @@ class XT981BL18(Instrument):
         :param f2: floating that represents the control frequency 2 in GHz
         :param f3: floating that represents the control frequency 3 in GHz
         """
-        self.write(f"FREQuency {f1} {f2} {f3};")
+        self.write(f"FREQuency {f1} {f2} {f3}")
 
     def stop(self):
         """ Immediately stops all motor operations """
@@ -258,25 +268,25 @@ class XT981BL18(Instrument):
 
     def store_setup(self, filepath):
         """ Save tuner setup file """
-        return self.write(f"SETUP:STORE {filepath};")
+        return self.write(f"SETUP:STORE {filepath}")
 
     def recall_setup(self, filepath):
         """ Load tuner setup file """
-        return self.write(f"SETUP:RECALL {filepath};")
+        return self.write(f"SETUP:RECALL {filepath}")
 
     def limit_status(self, carriage):
         """ Reads status of limit switches for selected carriage. 1 indicates limit switch is currently triggered """
-        return self.ask(f"STATus:LIMIT? {carriage};")
+        return self.ask(f"STATus:LIMIT? {carriage}")
 
     def tune(self, mag, phase, mag2="", phase2="", mag3="", phase3=""):
         """ Sets Gamma of FreqIdx (default 1) or of all control frequencies, and moves tuner """
-        self.write(f"TUNE {mag} {phase} {mag2} {phase2} {mag3} {phase3};")
+        self.write(f"TUNE {mag} {phase} {mag2} {phase2} {mag3} {phase3}")
 
     def tune_vswr(self, vswr, phase, vswr2="", phase2="", vswr3="", phase3=""):
         """ Sets VSWR of FreqIdx (default 1) or of all control frequencies, and moves tuner
             Example: TUNE:VSWR 10 120 10 -120 10 0
         """
-        self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3};")
+        self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3}")
 
     def set_zload(self, r, i, z0=50):
         """
@@ -311,9 +321,9 @@ class XT981BL18(Instrument):
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
             Example: TUNE:WEIGHT 5 .003 1 """
-        self.write(f"TUNE:WEIGHT {weight} {radius} {freq_idx};")
+        self.write(f"TUNE:WEIGHT {weight} {radius} {freq_idx}")
 
     def reboot(self):
         """Reboot Tuner"""
-        self.write("REBOOT;")
+        self.write("REBOOT")
 
