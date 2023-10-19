@@ -164,7 +164,7 @@ class XT981BL18(Instrument):
     )
 
     init_status = Instrument.measurement(
-        "STATus:INIT?",
+        "STATus:INIT?;",
         """ Indicates if one of all motors have been initialized. 1 indicates motor has been initialized """,
     )
 
@@ -258,25 +258,25 @@ class XT981BL18(Instrument):
 
     def store_setup(self, filepath):
         """ Save tuner setup file """
-        return self.write(f"SETUP:STORE {filepath}")
+        return self.write(f"SETUP:STORE {filepath};")
 
     def recall_setup(self, filepath):
         """ Load tuner setup file """
-        return self.write(f"SETUP:RECALL {filepath}")
+        return self.write(f"SETUP:RECALL {filepath};")
 
     def limit_status(self, carriage):
         """ Reads status of limit switches for selected carriage. 1 indicates limit switch is currently triggered """
-        return self.ask(f"STATus:LIMIT? {carriage}")
+        return self.ask(f"STATus:LIMIT? {carriage};")
 
     def tune(self, mag, phase, mag2="", phase2="", mag3="", phase3=""):
         """ Sets Gamma of FreqIdx (default 1) or of all control frequencies, and moves tuner """
-        self.write(f"TUNE {mag} {phase} {mag2} {phase2} {mag3} {phase3}")
+        self.write(f"TUNE {mag} {phase} {mag2} {phase2} {mag3} {phase3};")
 
     def tune_vswr(self, vswr, phase, vswr2="", phase2="", vswr3="", phase3=""):
         """ Sets VSWR of FreqIdx (default 1) or of all control frequencies, and moves tuner
             Example: TUNE:VSWR 10 120 10 -120 10 0
         """
-        self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3}")
+        self.write(f"TUNE:VSWR {vswr} {phase} {vswr2} {phase2} {vswr3} {phase3};")
 
     def set_zload(self, r, i, z0=50):
         """
@@ -311,7 +311,7 @@ class XT981BL18(Instrument):
     def tune_weight(self, weight, radius, freq_idx):
         """ Sets index for TUNE and TUNE:VSWR (default 1)
             Example: TUNE:WEIGHT 5 .003 1 """
-        self.write(f"TUNE:WEIGHT {weight} {radius} {freq_idx}")
+        self.write(f"TUNE:WEIGHT {weight} {radius} {freq_idx};")
 
     def reboot(self):
         """Reboot Tuner"""
