@@ -41,12 +41,14 @@ class XT981BL18(Instrument):
             print(f"Working directory: {tuner.dir}") # reading SD card's files
             tuner.init() # initializing tuner
             #wait until initialized
-            tuner.config_algo = 3
+            tuner.config_algo = 3 # .tunx calibration files
             tuner.calibration = "XT981BL18_868MHz_medium.tunx" # loading calibration file
             tuner.set_frequency(0.868) # set tuner control frequency to 868MHz
+            # tuner.set_zload(22,-5) # tune to a desired impedance (22-j5) @ control frequency
+            # tuner.tune(0.5,45) # tune to a desired position: magnitude=0.5 , phase=45°
     """
 
-    back_port = Instrument.control(
+    backport = Instrument.control(
         "BACKport?", "BACKport %s",
         """ Query current backport file.
             Set backport S-parameter block to a .s2p file or directly writes S-parameters of a selected control frequency.
@@ -56,25 +58,11 @@ class XT981BL18(Instrument):
         dynamic=True
     )
 
-    back_port_spar = Instrument.measurement(
-        "BACKport:SPAR?",
-        """ Returns current backport S-parameters """,
-    )
-
     calibration = Instrument.control(
         "CALIBration?", "CALIBration %s",
         """ Reads current calibration file.
             Defines calibration data file. Data is loaded into memory after sending FREQ command.
             Example: CALIB xt982a.tun
-        This property can be set.
-        """,
-        dynamic=True
-    )
-
-    cal_info = Instrument.measurement(
-        "CALINFO?",
-        """ Reads contents of current calibration
-            Example: CALINFO? xt982a.tun
         This property can be set.
         """,
         dynamic=True
@@ -110,49 +98,6 @@ class XT981BL18(Instrument):
         This property can be set.
         """,
         dynamic=True
-    )
-
-    fixture_spar = Instrument.measurement(
-        "FIXTure:SPAR?",
-        """ Returns current fixture S-parameters """,
-    )
-
-    gamma = Instrument.measurement(
-        "GAMMA?",
-        """ Reads current Gamma and Loss(dB) of one or all control frequencies.
-            The Loss value is defined between DUT and Load (including FIXTURE, TUNER and BACK)
-            Examples: GAMMA?
-            Returns: <Freq>,<Mag,<Phase>,<Loss>
-        """,
-        dynamic=True
-    )
-
-    loss = Instrument.measurement(
-        "LOSS?",
-        """ Same as GAMMA? """,
-        dynamic=True
-    )
-
-    help = Instrument.measurement(
-        "HELP?",
-        """ Display list of supported commands """,
-    )
-
-    setup = Instrument.measurement(
-        "SETUP?",
-        """ Query current setup file """,
-    )
-
-    setup_all = Instrument.measurement(
-        "SETUP:ALL?",
-        """ Query all files in current setup file.
-            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """,
-    )
-
-    spar = Instrument.measurement(
-        "SPARameter?",
-        """ Reads current network S-Parameters and Loss(dB) of one or all control frequencies
-            Example: SPAR? """,
     )
 
     frequency = Instrument.measurement(
@@ -195,12 +140,6 @@ class XT981BL18(Instrument):
         """ Returns the current termination S-parameters """,
     )
 
-    vswr = Instrument.measurement(
-        "VSWR?",
-        """ Reports VSWR and Loss """,
-        dynamic=True
-    )
-
     tune_weight = Instrument.measurement(
         "TUNE:WEIGHT?",
         """ Reports current tuning weight
@@ -219,6 +158,12 @@ class XT981BL18(Instrument):
             **kwargs
         )
 
+    def read_buffer(self, cmd):
+        """ Reading the buffer for commands that return multi-lines string (for instance: help command)"""
+        self.write(cmd)
+        buffer = self.read_bytes(-1)  # reading the entire buffer
+        return buffer.decode('utf-8').strip()
+
     def clear(self):
         """ Clears all settings for calibration, frequencies, and fixture files """
         self.write("CLEAR")
@@ -227,6 +172,65 @@ class XT981BL18(Instrument):
         """ Initializes individual motor, carriage, or entire tuner.
             Use complete or status command to detect when INIT procedure has finished. """
         self.write("INIT")
+
+    def help(self):
+        """ Display list of supported commands """
+        cmd = "HELP?"
+        return print(self.read_buffer(cmd))
+
+    def gamma(self):
+        """ Reads current Gamma and Loss(dB) of one or all control frequencies.
+            The Loss value is defined between DUT and Load (including FIXTURE, TUNER and BACK)
+            Examples: GAMMA?
+            Returns: <Freq>,<Mag,<Phase>,<Loss>
+        """
+        cmd = "GAMMA?"
+        return self.read_buffer(cmd)
+
+    def loss(self):
+        """
+        Same as GAMMA
+        """
+        cmd = "LOSS?"
+        return self.read_buffer(cmd)
+
+    def spar(self):
+        """
+        Reads current network S-Parameters and Loss(dB) of one or all control frequencies
+        """
+        cmd = "SPARameter?"
+        return print(self.read_buffer(cmd))
+
+    def vswr(self):
+        """ Reports VSWR and Loss """
+        cmd = "VSWR?"
+        return self.read_buffer(cmd)
+
+    def fixture_spar(self):
+        """ Returns current fixture S-parameters """
+        cmd = "FIXTure:SPAR?"
+        return self.read_buffer(cmd)
+
+    def backport_spar(self):
+        """ Returns current backport S-parameters """
+        cmd = "BACK:SPAR?"
+        return self.read_buffer(cmd)
+
+    def setup(self):
+        """ Query current setup file """
+        cmd = "SETUP?"
+        return self.read_buffer(cmd)
+
+    def setup_all(self):
+        """ Query all files in current setup file.
+            Returns: <Setup File> <Tuner File> <Fixture File> <Backport File> <Termination File> """
+        cmd = "SETUP:ALL?"
+        return print(self.read_buffer(cmd))
+
+    def cal_info(self):
+        """ Reads contents of current calibration """
+        cmd = "CALINFO?"
+        return print(self.read_buffer(cmd))
 
     def set_position(self, motor, position):
         """
