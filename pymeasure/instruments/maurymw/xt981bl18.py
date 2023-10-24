@@ -199,7 +199,7 @@ class XT981BL18(Instrument):
         Reads current network S-Parameters and Loss(dB) of one or all control frequencies
         """
         cmd = "SPARameter?"
-        return print(self.read_buffer(cmd))
+        return self.read_buffer(cmd)
 
     def vswr(self):
         """ Reports VSWR and Loss """
