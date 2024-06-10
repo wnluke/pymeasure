@@ -30,7 +30,11 @@ from copy import copy
 from pyvisa.util import to_ieee_block, to_hp_block, to_binary_block
 
 
+<<<<<<< HEAD
 class Adapter:
+=======
+class Adapter(object):
+>>>>>>> power_supplies
     """ Base class for Adapter child classes, which adapt between the Instrument
     object and the connection, to allow flexible use of different connection
     techniques.
@@ -147,11 +151,16 @@ class Adapter:
 
     # Deprecated methods.
     def ask(self, command):
+<<<<<<< HEAD
         """ Write the command to the instrument and returns the resulting
         ASCII response.
 
         .. deprecated:: 0.11
            Call `Instrument.ask` instead.
+=======
+        """ Writes the command to the instrument and returns the resulting
+        ASCII response
+>>>>>>> power_supplies
 
         :param command: SCPI command string to be sent to the instrument
         :returns: String ASCII response of the instrument
@@ -164,8 +173,18 @@ class Adapter:
         """ Write a command to the instrument and returns a list of formatted
         values from the result.
 
+<<<<<<< HEAD
         .. deprecated:: 0.11
             Call `Instrument.values` instead.
+=======
+        :returns: String ASCII response of the instrument.
+        """
+        raise NameError("Adapter (sub)class has not implemented reading")
+
+    def values(self, command):
+        """ Writes a command to the instrument and returns a list of formatted
+        values from the result
+>>>>>>> power_supplies
 
         :param command: SCPI command to be sent to the instrument
         :param separator: A separator character to split the string into a list
@@ -198,9 +217,12 @@ class Adapter:
 
     def binary_values(self, command, header_bytes=0, dtype=np.float32):
         """ Returns a numpy array from a query for binary data
+<<<<<<< HEAD
 
         .. deprecated:: 0.11
             Call `Instrument.binary_values` instead.
+=======
+>>>>>>> power_supplies
 
         :param command: SCPI command to be sent to the instrument
         :param header_bytes: Integer number of bytes to ignore in header
@@ -263,11 +285,23 @@ class Adapter:
         block = self._format_binary_values(values, **kwargs)
         return self.write_bytes(command.encode() + block + termination.encode())
 
+    @property
+    def name(self):
+        return self.__class__.__name__
+
 
 class FakeAdapter(Adapter):
+<<<<<<< HEAD
     """Provides a fake adapter for debugging purposes,
     which bounces back the command so that arbitrary values
     testing is possible.
+=======
+    """The Fake adapter class is provided for debugging purposes,
+    which returns valid data for each Adapter method"""
+    class Object(object):
+            pass
+    connection = Object()
+>>>>>>> power_supplies
 
     .. code-block:: python
 

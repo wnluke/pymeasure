@@ -30,23 +30,34 @@ from ..thread import StoppableThread
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+from logging.handlers import QueueHandler
 
 try:
     import zmq
+<<<<<<< HEAD
     import cloudpickle
+=======
+    from msgpack_numpy import loads, dumps
+>>>>>>> power_supplies
 except ImportError:
     zmq = None
     cloudpickle = None
     log.warning("ZMQ and cloudpickle are required for TCP communication")
 
 
+<<<<<<< HEAD
 class Monitor(QueueListener):
     def __init__(self, results, queue):
         console = StreamHandler()
         console.setFormatter(results.formatter)
 
         super().__init__(queue, console)
-
+=======
+from threading import Thread
+from pymeasure.thread import StoppableThread
+from pymeasure.process import StoppableProcess
+from .results import Results
+>>>>>>> power_supplies
 
 class Listener(StoppableThread):
     """Base class for Threads that need to listen for messages on
@@ -110,6 +121,7 @@ class Recorder(QueueListener):
             fh.setLevel(logging.NOTSET)
             handlers.append(fh)
 
+<<<<<<< HEAD
         super().__init__(queue, *handlers)
 
     def stop(self):
@@ -117,3 +129,83 @@ class Recorder(QueueListener):
             handler.close()
 
         super().stop()
+=======
+    def run(self):
+        with open(self.results.data_filename, 'ab', buffering=0) as handle:
+            log.info("Recording to file: %s" % self.results.data_filename)
+            while True:
+                data = self.queue.get()
+                if data is None:
+                    break
+                handle.write(self.results.format(data).encode())
+            log.info("Recorder caught stop command")
+
+class Daemon(StoppableThread):
+    """ Daemon receives commands by listening for it over a queue and
+    puts the response in another queue. The queues ensure that no data
+    is lost between the Daemon and Server.
+    """
+
+    def __init__(self):
+        """ Constructs a Daemon to receive commands from a Server process
+        """
+        super(Daemon, self).__init__()
+
+    def run(self):
+        while True:
+            data = self.commands.command_queue.get()
+            if data is None:
+                self.stop()
+            response = self.commands.eval(data)
+            self.commands.response_queue.put(response.encode())
+        log.info("Daemon %s caught stop command" %self.name)
+
+class Server(StoppableProcess):
+    """ Server manages and runs Daemon threads, publishes received data on a ZMQ socket
+    and keeps a data buffer to prevent lost packages.
+    """
+    def __init__(self, port, log_queue=None, log_level=logging.INFO):
+        self.daemons = []
+        self.port = port
+        if log_queue is None:
+            log_queue = Queue()
+        self.log_queue = log_queue
+        self.log_level = log_level
+
+        super(Server, self).__init__()
+
+    def run(self):
+        global log
+        log = logging.getLogger()
+        log.setLevel(self.log_level)
+        # log.handlers = [] # Remove all other handlers
+        log.addHandler(QueueHandler(self.log_queue))
+        log.info("Server process %s started" %self.name)
+
+        if self.port is not None:
+            self.context = zmq.Context()
+            log.debug("Worker ZMQ Context: %r" % self.context)
+            self.publisher = self.context.socket(zmq.PUB)
+            self.publisher.bind('tcp://*:%d' % self.port)
+            log.info("Worker connected to tcp://*:%d" % self.port)
+            sleep(0.01)
+
+        while not self.should_stop():
+            data = self.queue.get()
+            if data is None:
+                self.stop()
+            self.emit(*data)
+            if data[0] == 'create_instrument':
+                self.create_daemon(*data[1])
+        log.info("Server %s caught stop command" %self.name)
+
+    def emit(self, topic, data):
+        """ Emits data of some topic over TCP """
+        if isinstance(topic, str):
+            topic = topic.encode()
+        log.debug("Emitting message: %s %s" % (topic, data))
+        try:
+            self.publisher.send_multipart([topic, dumps(data)])
+        except (NameError, AttributeError):
+            pass # No dumps defined
+>>>>>>> power_supplies

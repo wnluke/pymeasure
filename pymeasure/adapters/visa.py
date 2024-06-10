@@ -197,9 +197,14 @@ class VISAAdapter(Adapter):
                         return bytes(result)
                     raise
 
+<<<<<<< HEAD
     def ask(self, command):
         """ Writes the command to the instrument and returns the resulting
         ASCII response
+=======
+    def __repr__(self):
+        return self.visa_resource_name()
+>>>>>>> power_supplies
 
         .. deprecated:: 0.11
            Call `Instrument.ask` instead.
@@ -222,6 +227,7 @@ class VISAAdapter(Adapter):
         :param \\**kwargs: Key-word arguments to pass onto `query_ascii_values`
         :returns: Formatted response of the instrument.
         """
+<<<<<<< HEAD
         warn("`Adapter.ask_values` is deprecated, call `Instrument.values` instead.",
              FutureWarning)
 
@@ -233,6 +239,29 @@ class VISAAdapter(Adapter):
         .. deprecated:: 0.11
             Call `Instrument.binary_values` instead.
 
+=======
+        return self.connection.read()
+
+    def values(self, command, separator = ','):
+        """ Writes a command to the instrument and returns a list of numerical
+        values from the result.
+
+        :param command: SCPI command to be sent to the instrument.
+        :returns: A list of numerical values.
+        """
+        results = str(self.ask(command)).strip()
+        results = results.split(separator)
+        for result in results:
+            try:
+                result = float(result)
+            except:
+                pass # Keep as string
+        return results
+
+    def binary_values(self, command, header_bytes=0, dtype=np.float32):
+        """ Returns a numpy array from a query for binary data
+
+>>>>>>> power_supplies
         :param command: SCPI command to be sent to the instrument
         :param header_bytes: Integer number of bytes to ignore in header
         :param dtype: The NumPy data type to format the values with
@@ -245,13 +274,43 @@ class VISAAdapter(Adapter):
         # header = binary[:header_bytes]
         data = binary[header_bytes:]
         return np.fromstring(data, dtype=dtype)
+<<<<<<< HEAD
+=======
+
+>>>>>>> power_supplies
 
     def write_binary_values(self, command, values, timeout=None, **kwargs):
         """ Write binary data to the instrument, e.g. waveform for signal generators
 
+<<<<<<< HEAD
         This command is often used to transfer large set of data, eg. waveform for signal
         generators and the timeout parameter is very useful since VISA enforce a timeout also
         during write operation.
+=======
+    :param resource: VISA resource name that identifies the address.
+    :param kwargs: Any valid key-word arguments for constructing a PyVISA instrument.
+    """
+    def __init__(self, resourceName, **kwargs):
+        self.connection = visa.instrument(resourceName, **kwargs)
+
+    def config(self, **kwargs):
+        """ Reserve for future implementation."""
+        log.warning("Class method config() not yet implemented! Do nothing.")
+        pass
+
+    def ask(self, command):
+        """ Writes the command to the instrument and returns the resulting
+        ASCII response
+
+        :param command: SCPI command string to be sent to the instrument
+        :returns: String ASCII response of the instrument
+        """
+        return self.connection.ask(command)
+
+    def ask_values(self, command):
+        """ Writes a command to the instrument and returns a list of formatted
+        values from the result
+>>>>>>> power_supplies
 
         :param command: SCPI command to be sent to the instrument
         :param values: iterable representing the binary values
@@ -279,12 +338,49 @@ class VISAAdapter(Adapter):
         """
         self.connection.wait_for_srq(timeout * 1000)
 
+<<<<<<< HEAD
     def flush_read_buffer(self):
         """ Flush and discard the input buffer
 
         As detailed by pyvisa, discard the read and receivee buffer contents
         and if data was present in the read buffer and no END-indicator was present,
         read from the device until encountering an END indicator (which causes loss of data).
+=======
+    def visa_resource_name(self):
+        return "<VISAAdapter(resource='%s')>" % self.connection.resourceName
+
+class VISAAdapter17(Adapter):
+    """ Adapter class for VISA version 1.5 or above. Be inherited by class VISAAdapter.
+
+    :param resource: VISA resource name that identifies the address.
+    :param kwargs: Any valid key-word arguments for constructing a PyVISA instrument.
+    """
+    def __init__(self, resourceName, **kwargs):
+        self.manager = visa.ResourceManager()
+        safeKeywords = ['resource_name', 'timeout', 'term_chars',
+                        'chunk_size', 'lock', 'delay', 'send_end',
+                        'values_format']
+        kwargsCopy = copy.deepcopy(kwargs)
+        for key in kwargsCopy:
+            if key not in safeKeywords:
+                kwargs.pop(key)
+        self.connection = self.manager.get_instrument(
+                                resourceName,
+                                **kwargs
+                          )
+
+    def config(self, is_binary = False, datatype = 'str',
+                    container = np.array, converter = 's',
+                    separator = ',', is_big_endian = False):
+        """ Configurate the format of data transfer to and from the instrument.
+
+        :param is_binary: If True, data is in binary format, otherwise ASCII.
+        :param datatype: Data type.
+        :param container: Return format. Any callable/type that takes an iterable.
+        :param converter: String converter, used in dealing with ASCII data.
+        :param separator: Delimiter of a series of data in ASCII.
+        :param is_big_endian: Endianness.
+>>>>>>> power_supplies
         """
         try:
             self.connection.flush(pyvisa.constants.BufferOperation.discard_read_buffer)
@@ -303,5 +399,37 @@ class VISAAdapter(Adapter):
             finally:
                 self.connection.timeout = timeout
 
+<<<<<<< HEAD
     def __repr__(self):
         return "<VISAAdapter(resource='%s')>" % self.connection.resource_name
+=======
+    def ask(self, command):
+        """ Writes the command to the instrument and returns the resulting
+        ASCII response
+
+        :param command: SCPI command string to be sent to the instrument
+        :returns: String ASCII response of the instrument
+        """
+        return self.connection.query(command)
+
+    def ask_values(self, command):
+        """ Writes a command to the instrument and returns a list of formatted
+        values from the result. The format of the return is configurated by
+        self.config().
+
+        :param command: SCPI command to be sent to the instrument
+        :returns: Formatted response of the instrument.
+        """
+        return self.connection.query_values(command)
+
+    def visa_resource_name(self):
+        return "<VISAAdapter(resource='%s')>" % self.connection.resource_name
+
+    def wait_for_srq(self, timeout=25, delay=0.1):
+        """ Blocks until a SRQ, and leaves the bit high
+
+        :param timeout: Timeout duration in seconds
+        :param delay: Time delay between checking SRQ in seconds
+        """
+        self.connection.wait_for_srq(timeout*1000)
+>>>>>>> power_supplies

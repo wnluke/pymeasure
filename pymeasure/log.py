@@ -88,6 +88,7 @@ def setup_logging(logger=None, console=False, console_level='INFO', filename=Non
                   file_level='DEBUG', queue=None, file_kwargs=None):
     """Setup logging for console and/or file logging. Returns a scribe thread object.
     Defaults to no logging."""
+<<<<<<< HEAD
     if queue is None:
         queue = Queue()
     if logger is None:
@@ -96,6 +97,13 @@ def setup_logging(logger=None, console=False, console_level='INFO', filename=Non
         file_kwargs = {}
 
     logger.handlers = []
+=======
+    if logger is None:
+        logger = logging.getLogger('')
+    logger.handlers = []
+    if queue is None:
+        queue = Queue()
+>>>>>>> power_supplies
     if console:
         console_log(logger, level=getattr(logging, console_level))
         logger.info('Set up console logging')

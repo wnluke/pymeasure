@@ -26,6 +26,7 @@ from .keithley2000 import Keithley2000
 from .keithley2260B import Keithley2260B
 from .keithley2306 import Keithley2306
 from .keithley2400 import Keithley2400
+<<<<<<< HEAD
 from .keithley2450 import Keithley2450
 from .keithley2600 import Keithley2600
 from .keithley2700 import Keithley2700
@@ -33,3 +34,6 @@ from .keithley2750 import Keithley2750
 from .keithley6221 import Keithley6221
 from .keithley6517b import Keithley6517B
 from .keithley2200 import Keithley2200
+=======
+from .keithley2600 import Keithley2600
+>>>>>>> power_supplies

@@ -22,6 +22,10 @@
 # THE SOFTWARE.
 #
 
+<<<<<<< HEAD
+=======
+from .parameters import Parameter
+>>>>>>> power_supplies
 import logging
 import sys
 import inspect
@@ -73,6 +77,7 @@ class Procedure:
         self._update_parameters()
         self._update_metadata()
         for key in kwargs:
+<<<<<<< HEAD
             if key in self._parameters.keys():
                 setattr(self, key, kwargs[key])
                 log.info(f'Setting parameter {key} to {kwargs[key]}')
@@ -124,11 +129,32 @@ class Procedure:
     def get_datapoint(self):
         data = {key: getattr(self, self.MEASURE[key]).value for key in self.MEASURE}
         return data
+=======
+            setattr(self, key, kwargs[key])
+            log.info('Setting parameter %s to %s' %(key, kwargs[key]))
+    #     self.gen_measurement()
 
-    def measure(self):
-        data = self.get_datapoint()
-        log.debug("Produced numbers: %s" % data)
-        self.emit('results', data)
+    # def gen_measurement(self):
+    #     '''Create MEASURE and DATA_COLUMNS variables for get_datapoint method.
+    #     '''
+    #     self.MEASURE = {}
+    #     for item in dir(self):
+    #         parameter = getattr(self, item)
+    #         if isinstance(parameter, Measurable):
+    #             if parameter.measure:
+    #                 self.MEASURE.update({parameter.name: item})
+    #     if self.DATA_COLUMNS == []:
+    #         self.DATA_COLUMNS = Measurable.DATA_COLUMNS
+
+    # def get_datapoint(self):
+    #     data = {key:getattr(self,self.MEASURE[key]).value for key in self.MEASURE}
+    #     return data
+>>>>>>> power_supplies
+
+    # def measure(self):
+    #     data = self.get_datapoint()
+    #     log.debug("Produced numbers: %s" % data)
+    #     self.emit('results', data)
 
     def _update_parameters(self):
         """ Collects all the Parameter objects for the procedure and stores

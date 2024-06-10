@@ -125,7 +125,7 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
                  inputs_in_scrollarea=False,
                  directory_input=False,
                  hide_groups=True,
-                 ):
+                 ): # parameters to initialize the class and their default data
 
         super().__init__(parent)
         app = QtCore.QCoreApplication.instance()
@@ -154,18 +154,19 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
         self._setup_ui()
         self._layout()
 
-    def _setup_ui(self):
-        if self.directory_input:
-            self.directory_label = QtWidgets.QLabel(self)
+    def _setup_ui(self): #structure of the UI
+
+        if self.directory_input: # insert information of the folder
+            self.directory_label = QtWidgets.QLabel(self) # label
             self.directory_label.setText('Directory')
-            self.directory_line = DirectoryLineEdit(parent=self)
+            self.directory_line = DirectoryLineEdit(parent=self) # insert info
 
-        self.queue_button = QtWidgets.QPushButton('Queue', self)
-        self.queue_button.clicked.connect(self._queue)
+        self.queue_button = QtWidgets.QPushButton('Queue', self) #Button
+        self.queue_button.clicked.connect(self._queue) # call function _queue
 
-        self.abort_button = QtWidgets.QPushButton('Abort', self)
-        self.abort_button.setEnabled(False)
-        self.abort_button.clicked.connect(self.abort)
+        self.abort_button = QtWidgets.QPushButton('Abort', self) # call function Abort
+        self.abort_button.setEnabled(False) # start unavailable, in other function the button actions are activated
+        self.abort_button.clicked.connect(self.abort) # it calls the function abort
 
         self.browser_widget = BrowserWidget(
             self.procedure_class,
@@ -173,12 +174,14 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
             [],  # This value will be patched by subclasses, if needed
             parent=self
         )
+        #these are buttons actions with their respective functions
         self.browser_widget.show_button.clicked.connect(self.show_experiments)
         self.browser_widget.hide_button.clicked.connect(self.hide_experiments)
         self.browser_widget.clear_button.clicked.connect(self.clear_experiments)
         self.browser_widget.open_button.clicked.connect(self.open_experiment)
         self.browser = self.browser_widget.browser
 
+        #these buttons register a menu
         self.browser.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.browser.customContextMenuRequested.connect(self.browser_item_menu)
         self.browser.itemChanged.connect(self.browser_item_changed)
@@ -189,7 +192,7 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
             parent=self,
             hide_groups=self.hide_groups,
         )
-
+        # this attribute works with the log screen
         self.manager = Manager(self.widget_list,
                                self.browser,
                                log_level=self.log_level,

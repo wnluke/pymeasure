@@ -74,7 +74,7 @@ class HP34401A(Instrument):
         super().__init__(
             adapter,
             name,
-            asrl={'baud_rate': 9600, 'data_bits': 7, 'parity': 2},
+            asrl={'baud_rate': 9600, 'data_bits': 7, 'parity': 2}, #this is the configuration to connect with the multimeter in the labs
             **kwargs
         )
 

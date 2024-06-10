@@ -33,6 +33,14 @@ from .results import unique_filename
 from .config import get_config, set_mpl_rcparams
 from pymeasure.log import setup_logging, console_log
 from pymeasure.experiment import Results, Worker
+<<<<<<< HEAD
+=======
+import time, signal
+import numpy as np
+import tempfile
+import gc
+import os
+>>>>>>> power_supplies
 
 log = logging.getLogger()
 log.addHandler(logging.NullHandler())
@@ -159,8 +167,12 @@ class Experiment:
         if self.wait_for_data():
             if not (self.plots):
                 self.plot(*args, **kwargs)
-            while not self.worker.should_stop():
-                self.update_plot()
+            try:
+                while not(self.worker.should_stop()) and not(self._user_interrupt):
+                    self.update_plot()
+            except KeyboardInterrupt:
+                self._user_interrupt = True
+                pass
             display.clear_output(wait=True)
             if self.worker.is_alive():
                 self.worker.terminate()
@@ -170,7 +182,7 @@ class Experiment:
         """Plot the results from the experiment.data pandas dataframe. Store the
         plots in a plots list attribute."""
         if self.wait_for_data():
-            kwargs['title'] = self.title
+            kwargs['title'] = os.path.split(self.filename)[1][:-4]
             ax = self.data.plot(*args, **kwargs)
             self.plots.append({'type': 'plot', 'args': args, 'kwargs': kwargs, 'ax': ax})
             if ax.get_figure() not in self.figs:

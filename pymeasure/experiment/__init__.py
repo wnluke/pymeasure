@@ -23,8 +23,12 @@
 #
 
 from .parameters import (Parameter, IntegerParameter, FloatParameter,
+<<<<<<< HEAD
                          VectorParameter, ListParameter, BooleanParameter,
                          Measurable, Metadata)
+=======
+                        VectorParameter, ListParameter, BooleanParameter)
+>>>>>>> power_supplies
 from .procedure import Procedure, UnknownProcedure
 from .results import Results, unique_filename, replace_placeholders
 from .workers import Worker
