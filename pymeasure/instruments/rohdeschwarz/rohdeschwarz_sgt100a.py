@@ -48,7 +48,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
     ####################################################################
     awgn_mode = Instrument.control(
         ":AWGN:MODE?", ":AWGN:MODE %s",
-        """ A string property that define the mode for generating the interfering signal.
+        """ A string property that defines the mode for generating the interfering signal.
         This property can be set. """,
         validator=strict_discrete_set,
         values=("ONLY", "ADD"),
@@ -71,7 +71,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
 
     awgn_enable = Instrument.control(
         ":AWGN:STATe?", ":AWGN:STATe %g",
-        """ A bootlean property to enable/disable AWGN. """,
+        """ A boolean property to enable/disable AWGN. """,
         validator=strict_discrete_set,
         values={True: 1, False: 0},
         map_values=True
