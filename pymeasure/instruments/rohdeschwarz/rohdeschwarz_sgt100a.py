@@ -140,13 +140,11 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         raise NotImplementedError("Method not implemented")
 
     def enable_modulation(self):
-        # Do nothing since  each modulation type should be enabled with relevant command
-        pass
+        self.custom_modulation_enable = 1
 
     def disable_modulation(self):
         """ Disables the signal modulation. """
-        # TBD
-        pass
+        self.custom_modulation_enable = 0
 
     def data_trigger_setup(self, mode=None):
         """ Configure the trigger system for bitsequence transmission
@@ -252,6 +250,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         unique_segments_idx = {v: i for (i, v) in enumerate(unique_segments)}
 
         for seg_name in unique_segments:
+            seg_name = f"{seg_name:s}.wv"
             self.write(f"BB:ARB:WSEG:CONF:SEGM:APP '{seg_name:s}'")
 
         self.write(f"BB:ARB:WSEG:CRE '{conf_file:s}'")
