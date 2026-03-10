@@ -230,7 +230,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         self.write(f"BB:ARB:WSEG:CONF:SEL '{conf_file:s}'")
 
         # Define multisegment file name
-        seq_file = f"{name:s}.wv"
+        seq_file = name
         self.delete_file(seq_file)
         self.write(f"BB:ARB:WSEG:CONF:OFIL '{seq_file:s}'")
 
@@ -250,7 +250,6 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         unique_segments_idx = {v: i for (i, v) in enumerate(unique_segments)}
 
         for seg_name in unique_segments:
-            seg_name = f"{seg_name:s}.wv"
             self.write(f"BB:ARB:WSEG:CONF:SEGM:APP '{seg_name:s}'")
 
         self.write(f"BB:ARB:WSEG:CRE '{conf_file:s}'")
