@@ -143,7 +143,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         )
         self.data_ramping_workaround = True
 
-        self.digital_modulation = "431" in self.options
+        self.digital_modulation = ("431" in self.options) or ("602" in self.options)   
 
     def _get_markerdata(self, markers_list):
         # Check list item type
@@ -166,6 +166,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         self.write_binary_values(f'MEM:DATA "WFM1:{name}",',
                                  self._get_iqdata(iqdata),
                                  is_big_endian=True, datatype='h')
+        self.complete
         if markers is not None:
             assert (len(iqdata) == len(markers))
             self.write_binary_values(f'MEM:DATA "MKR1:{name}",',
