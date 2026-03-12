@@ -166,7 +166,6 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         self.write_binary_values(f'MEM:DATA "WFM1:{name}",',
                                  self._get_iqdata(iqdata),
                                  is_big_endian=True, timeout=20000, datatype='h')
-        self.complete
         if markers is not None:
             assert (len(iqdata) == len(markers))
             self.write_binary_values(f'MEM:DATA "MKR1:{name}",',
@@ -214,7 +213,6 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
             data += [0x10]*spacing
         self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"PacketsToTransmit\",",
                                  data, timeout=20000, datatype='B')
-        self.complete
         self.write("RADIO:CUSTOM:DATA:PRAM \"PacketsToTransmit\"")
         self.data_ramping_workaround = True
         self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"RampingWorkaround\",",
