@@ -230,9 +230,8 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         self.write(f"BB:ARB:WSEG:CONF:SEL '{conf_file:s}'")
 
         # Define multisegment file name
-        seq_file = name
-        self.delete_file(seq_file)
-        self.write(f"BB:ARB:WSEG:CONF:OFIL '{seq_file:s}'")
+        self.delete_file(name)
+        self.write(f"BB:ARB:WSEG:CONF:OFIL '{name:s}'")
 
         # Set sampling rate, if defined
         if sampling_rate is not None:
@@ -267,7 +266,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
 
         # Select waveform
         self.complete
-        self.write(f"BB:ARB:WAV:SEL '{seq_file:s}'")
+        self.write(f"BB:ARB:WAV:SEL '{name:s}'")
 
     def delete_file(self, filename):
         """ Delete a file in the instrument memory """
