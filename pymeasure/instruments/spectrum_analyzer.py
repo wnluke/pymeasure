@@ -206,7 +206,7 @@ Single sweep acquisition and peak value calculation
         This property can be set.
         """,
         validator=strict_discrete_set,
-        values=("WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"),
+        values=("AVER","WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"),
         cast=str,
         dynamic=True
     )
