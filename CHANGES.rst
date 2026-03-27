@@ -1,3 +1,9 @@
+Version 0.13.2 (2026-03-27)
+===========================
+Instruments
+-----------
+- Adds Maury Microwave XT981BL18 tuner
+
 Version 0.13.1 (2023-10-05)
 ===========================
 New release to fix ineffective python version restriction in the project metadata (only affected Python<=3.7 environments installing via pip).

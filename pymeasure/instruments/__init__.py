@@ -53,6 +53,7 @@ from . import ipgphotonics
 from . import keithley
 from . import keysight
 from . import lakeshore
+from . import maurymw
 from . import newport
 from . import ni
 from . import novanta
