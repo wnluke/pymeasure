@@ -383,6 +383,15 @@ class RS_SGT100A_LORA(RS_SGT100A):
         """
         self.write(":OUTP %s" % state)
 
+
+    def mod(self, state):
+        """
+        @param state: {ON|OFF}
+        @return:
+        """
+        self.write("IQ:STATe %s" % state)
+
+
     def arb_select(self, waveform):
         """
         Select arbitrary waveform
