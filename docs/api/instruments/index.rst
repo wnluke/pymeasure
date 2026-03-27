@@ -49,6 +49,7 @@ Instruments by manufacturer:
    keysight/index
    lakeshore/index
    lecroy/index
+   maurymw/index
    mksinst/index
    newport/index
    ni/index
