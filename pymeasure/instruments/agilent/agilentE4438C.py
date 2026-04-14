@@ -50,6 +50,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
     CUSTOM_MODULATION_DATA = {
         'DATA':        "PRAM",
         'PatternPN9':  "PN9",
+        'PatternPN15': "PN15",
         'Pattern0011': "FIX4;DATA:FIX4 #B0011",
         'Pattern0101': "FIX4;DATA:FIX4 #B0101",
         'Pattern1111': "FIX4;DATA:FIX4 #B1111",
