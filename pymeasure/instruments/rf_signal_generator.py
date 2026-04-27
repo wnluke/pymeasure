@@ -362,7 +362,7 @@ Another example for user data loading
         # Subclasses should implement this
         raise Exception("Not supported/implemented")
 
-    def data_iq_sequence_load(self, iqdata_sequence, looping):
+    def data_iq_sequence_load(self, iqdata_sequence, looping=False):
         """ Load IQ sequence into signal generator
 
         :param iqdata_sequence: list of names representing valid data loaded
