@@ -104,6 +104,30 @@ Single sweep acquisition and peak value calculation
         dynamic=True
     )
 
+    video_bw_mode = Instrument.control(
+        ":SENSe:BWIDth:VIDeo:AUTO;", ":SENSe:BWIDth:VIDeo:AUTO %s;",
+        """ Couples and decouples the video bandwidth to the resolution bandwidth.
+        This property can be set.
+        """,
+        validator = strict_discrete_set,
+        values = {"ON": 1,
+                  "OFF": 0},
+        cast = int,
+        map_values = True,
+        dynamic = True
+        )
+
+    video_bw = Instrument.control(
+        ":SENSe:BANDwidth:VIDeo;", ":SENSe:BANDwidth:VIDeo %d Hz;",
+        """ Defines the video bandwidth.
+        The command decouples the video bandwidth from the resolution bandwidths.
+        This property can be set.
+        """,
+        validator=truncated_range,
+        values=(1, 10e6),
+        dynamic=True
+    )
+
     input_attenuation = Instrument.control(
         ":SENSe:POWer:ATTenuation?;", ":SENSe:POWer:ATTenuation %d;",
         """ An integer property that represents the instrument the input attenuation in dB.
@@ -202,11 +226,11 @@ Single sweep acquisition and peak value calculation
     trace_mode = Instrument.control(
         ":TRACe:MODE?;",  ":TRACe:MODE %s;",
         """ A string property that enable you to set how trace information is stored and displayed.
-        allowed values are "WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"
+        allowed values are "AVER", "WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"
         This property can be set.
         """,
         validator=strict_discrete_set,
-        values=("AVER","WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"),
+        values=("AVER", "WRITE", "MAXHOLD", "MINHOLD", "VIEW", "BLANK"),
         cast=str,
         dynamic=True
     )
