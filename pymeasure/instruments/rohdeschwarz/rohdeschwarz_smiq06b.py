@@ -199,7 +199,7 @@ class RS_SMIQ0xB(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ):
         # Select waveform
         self.write(f":ARB:WAV:SEL '{name:s}'")
 
-    def data_iq_sequence_load(self, iqdata_seq, sampling_rate, name):
+    def data_iq_sequence_load(self, iqdata_seq):
         raise Exception("Sequence mode not yet implemented in this instrument")
 
     def _get_symbol_length(self):

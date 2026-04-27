@@ -144,6 +144,8 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         )
         self.data_ramping_workaround = True
 
+        self.digital_modulation = ("431" in self.options) or ("602" in self.options)
+
     def _get_markerdata(self, markers_list):
         # Check list item type
         if len(markers_list):
@@ -164,7 +166,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
     def data_iq_load(self, iqdata, sampling_rate, name, markers=None):
         self.write_binary_values(f'MEM:DATA "WFM1:{name}",',
                                  self._get_iqdata(iqdata),
-                                 is_big_endian=True, datatype='h')
+                                 is_big_endian=True, timeout=20000, datatype='h')
         if markers is not None:
             assert (len(iqdata) == len(markers))
             self.write_binary_values(f'MEM:DATA "MKR1:{name}",',
@@ -174,18 +176,22 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         # Select waveform
         self.write(f':SOURce:RADio:ARB:WAVeform "WFM1:{name:s}"')
 
-    def data_iq_sequence_load(self, iqdata_seq, sampling_rate, name):
+    def data_iq_sequence_load(self, iqdata_seq, name=None):
         # Output is like this
         # :RAD:ARB:SEQ "SEQ:Test_Data","WFM1:ramp_test_wfm",25,ALL,"WFM1:sine_test_wfm",100,ALL
+
+        if name is None:
+            name = "IQSequence"
 
         # Process list and identify sequences repetitions
         parameters = ",".join(f'"WFM1:{name:s}",{rep:d},ALL' for (name, rep) in
                               self._process_iq_sequence(iqdata_seq))
         self.write(f':SOURce:RADio:ARB:SEQ "SEQ:{name:s}",' + parameters)
-        # After previous command, we always get a missing parameters error
-        error = self.values("SYST:ERR?")
-        assert error[0] == -109
-        self.write(f":SOURce:RADio:ARB:SCLock:RATE {sampling_rate:d}")
+        if "E4438C" in self.name:
+            # After previous command, we always get a missing parameters error
+            error = self.check_errors()[-1]
+            assert error[0] == -109
+
         # Select sequence
         self.write(f':SOURce:RADio:ARB:WAVeform "SEQ:{name:s}"')
 
@@ -208,7 +214,6 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
             data += [0x10]*spacing
         self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"PacketsToTransmit\",",
                                  data, timeout=20000, datatype='B')
-        self.complete
         self.write("RADIO:CUSTOM:DATA:PRAM \"PacketsToTransmit\"")
         self.data_ramping_workaround = True
         self.write_binary_values("MEM:DATA:PRAM:FILE:BLOCK \"RampingWorkaround\",",
@@ -217,13 +222,17 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
     def data_trigger_setup(self, mode='SINGLE'):
         """ Configure the trigger system for bitsequence transmission
         """
-        self.write("RADio:CUSTom:TRIG:SOURCE BUS")
-        self.write(f"RADio:CUSTom:TRIG:TYPE {mode}")
+        if self.digital_modulation:
+            self.write("RADio:CUSTom:TRIG:SOURCE BUS")
+            self.write(f"RADio:CUSTom:TRIG:TYPE {mode}")
+        else:
+            self.write(":SOURce:RADio:ARB:TRIGger:SOURce BUS")
+            self.write(f":SOURce:RADio:ARB:TRIGger:TYPE {mode}")
 
     def data_trigger(self):
         """ Trigger a bitsequence transmission
         """
-        if (self.data_ramping_workaround):
+        if self.data_ramping_workaround and self.digital_modulation:
             self.data_ramping_workaround = False
             self.write("RADIO:CUSTOM:DATA:PRAM \"RampingWorkaround\"")
             self.complete
@@ -237,11 +246,19 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
     def enable_modulation(self):
         """ This command enables or disables the modulation of the RF output with the
         currently active modulation type(s). """
-        self.write(":OUTPUT:MOD 1")
+        if self.digital_modulation:
+            self.custom_modulation_enable = 1
+            self.write(":OUTPUT:MOD 1")
+        else:
+            self.write(":SOURce:RADio:ARB:STATe ON")
 
     def disable_modulation(self):
         """ Disables the signal modulation. """
-        self.write(":OUTPUT:MOD 0")
+        if self.digital_modulation:
+            self.write(":OUTPUT:MOD 0")
+            self.custom_modulation_enable = 0
+        else:
+            self.write(":SOURce:RADio:ARB:STATe OFF")
 
     def set_fsk_constellation(self, constellation, fsk_dev):
         """ For multi level FSK modulation, we need to define the constellation mapping.

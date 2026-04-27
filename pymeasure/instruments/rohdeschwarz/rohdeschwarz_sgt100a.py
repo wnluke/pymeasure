@@ -140,13 +140,11 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         raise NotImplementedError("Method not implemented")
 
     def enable_modulation(self):
-        # Do nothing since  each modulation type should be enabled with relevant command
-        pass
+        self.custom_modulation_enable = 1
 
     def disable_modulation(self):
         """ Disables the signal modulation. """
-        # TBD
-        pass
+        self.custom_modulation_enable = 0
 
     def data_trigger_setup(self, mode=None):
         """ Configure the trigger system for bitsequence transmission
@@ -232,9 +230,8 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         self.write(f"BB:ARB:WSEG:CONF:SEL '{conf_file:s}'")
 
         # Define multisegment file name
-        seq_file = f"{name:s}.wv"
-        self.delete_file(seq_file)
-        self.write(f"BB:ARB:WSEG:CONF:OFIL '{seq_file:s}'")
+        self.delete_file(name)
+        self.write(f"BB:ARB:WSEG:CONF:OFIL '{name:s}'")
 
         # Set sampling rate, if defined
         if sampling_rate is not None:
@@ -269,7 +266,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
 
         # Select waveform
         self.complete
-        self.write(f"BB:ARB:WAV:SEL '{seq_file:s}'")
+        self.write(f"BB:ARB:WAV:SEL '{name:s}'")
 
     def delete_file(self, filename):
         """ Delete a file in the instrument memory """

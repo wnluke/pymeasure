@@ -29,7 +29,7 @@ class AgilentN5172B(agilentE4438C.AgilentE4438C):
     """ Class representing Agilent N5172B RF signal generator """
 
     # Define instrument limits according to datasheet
-    power_values = (-144.0, 19.0)
+    power_values = (-144.0, 30.0)
     frequency_values = (9e3, 6e9)
 
     name = "Agilent N5172B Signal Generator"
