@@ -219,7 +219,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         # Select waveform
         self.write(f"BB:ARB:WAV:SEL '{name:s}'")
 
-    def data_iq_sequence_load(self, iqdata_seq, name=None, sampling_rate=None):
+    def data_iq_sequence_load(self, iqdata_seq, name=None, sampling_rate=None, looping=False):
 
         if name is None:
             name = "IQSequence"
@@ -241,6 +241,8 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
             self.write('BB:ARB:WSEG:CONF:CLOC:MODE UNCHanged')
         self.write('BB:ARB:WSEG:CONF:LEV:MODE UNCHanged')
 
+        end_p = "SEG0" if looping else "BLANK"
+
         # Process list and identify sequences repetitions
         segment_list = self._process_iq_sequence(iqdata_seq)
         # Identify unique segments
@@ -260,7 +262,7 @@ class RS_SGT100A(RFSignalGenerator, RFSignalGeneratorIQ):
         self.write(f"BB:ARB:WSEG:SEQ:SEL '{pl_file:s}'")
         for i, (seg_name, rep) in enumerate(segment_list):
             last = (i == (len(segment_list) - 1))
-            next_p = 'BLANK' if last else 'NEXT'
+            next_p = end_p if last else 'NEXT'
             idx = unique_segments_idx[seg_name]
             self.write(f'BB:ARB:WSEG:SEQ:APP ON,{idx:d},{rep:d},{next_p:s}')
 
