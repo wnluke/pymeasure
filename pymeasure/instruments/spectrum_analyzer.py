@@ -109,10 +109,13 @@ Single sweep acquisition and peak value calculation
         """ Couples and decouples the video bandwidth to the resolution bandwidth.
         This property can be set.
         """,
-        validator=truncated_range,
-        values=("ON", "OFF"),
-        dynamic=True
-    )
+        validator = strict_discrete_set,
+        values = {"ON": 1,
+                  "OFF": 0},
+        cast = int,
+        map_values = True,
+        dynamic = True
+        )
 
     video_bw = Instrument.control(
         ":SENSe:BANDwidth:VIDeo;", ":SENSe:BANDwidth:VIDeo %d Hz;",
@@ -167,7 +170,7 @@ Single sweep acquisition and peak value calculation
         points in the sweep. This property can take values from 101 to 8192.
         """,
         validator=truncated_range,
-        values=(101, 30000),
+        values=(101, 8192),
         cast=int,
         dynamic=True
     )
