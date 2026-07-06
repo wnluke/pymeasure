@@ -144,7 +144,7 @@ class AgilentE4438C(RFSignalGenerator, RFSignalGeneratorDM, RFSignalGeneratorIQ)
         )
         self.data_ramping_workaround = True
 
-        self.digital_modulation = ("431" in self.options) or ("602" in self.options)
+        self.digital_modulation = ("602" in self.options) or ("601" in self.options)
 
     def _get_markerdata(self, markers_list):
         # Check list item type

@@ -39,3 +39,5 @@ class AgilentN5172B(agilentE4438C.AgilentE4438C):
             resourceName,
             **kwargs
         )
+
+        self.digital_modulation = ("431" in self.options)
