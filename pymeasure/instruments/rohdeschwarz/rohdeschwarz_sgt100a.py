@@ -424,6 +424,17 @@ class RS_SGT100A_LORA(RS_SGT100A):
         """
         self.write("BB:ARB:TRIG:EXEC")
 
+    def arb_state(self, state):
+        """
+        Activates the standard and deactivates all the other digital standards and digital modulation
+        modes in the same path.
+        :parameters:
+            <state> 0 | 1 | OFF | ON
+            *RST: 0
+        :return:
+        """
+        self.write("BB:ARB:STAT %s" % state)
+
     def trig_wait_start(self):
         count = 0
         while True:
