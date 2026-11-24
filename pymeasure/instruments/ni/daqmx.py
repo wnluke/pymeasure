@@ -35,7 +35,9 @@ log.addHandler(logging.NullHandler())
 
 try:
     if platform == "win32":
-        nidaq = ctypes.windll.nicaiu
+        # WinDLL raises OSError on every Python version, whereas windll.<name> raises
+        # AttributeError since Python 3.12 when the library is missing.
+        nidaq = ctypes.WinDLL("nicaiu")
 except OSError as err:
     log.info('Failed loading the NI-DAQmx library. '
              + 'Check the NI-DAQmx documentation on how to '
